@@ -324,12 +324,17 @@ class MainActivity : BaseActivity() {
             }
         }
 
+//        binding.btnCamera.setOnClickListener {
+//            if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED) {
+//                openOriginalDeviceCamera()
+//            } else {
+//                cameraPermissionLauncher.launch(Manifest.permission.CAMERA)
+//            }
+//        }
+
+
         binding.btnCamera.setOnClickListener {
-            if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED) {
-                openOriginalDeviceCamera()
-            } else {
-                cameraPermissionLauncher.launch(Manifest.permission.CAMERA)
-            }
+            openOriginalDeviceCamera()
         }
 
         binding.btnMenuLeft.setOnClickListener {
