@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal"
+    android:gravity="center_vertical"
+    android:paddingVertical="12dp"
+    android:paddingHorizontal="4dp">
+
+    <TextView
+        android:id="@+id/tvBandFreq"
+        android:layout_width="60dp"
+        android:layout_height="wrap_content"
+        android:fontFamily="sans-serif-medium"
+        android:text="60 Hz"
+        android:textColor="@color/lumina_text_title"
+        android:textSize="13sp" />
+
+    <SeekBar
+        android:id="@+id/seekBarBand"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:layout_marginHorizontal="8dp"
+        android:progressTint="@color/lumina_primary"
+        android:thumbTint="@color/lumina_primary"
+        android:progressBackgroundTint="#A0A0A0" />
+
+    <TextView
+        android:id="@+id/tvBandGain"
+        android:layout_width="54dp"
+        android:layout_height="wrap_content"
+        android:gravity="end"
+        android:fontFamily="sans-serif-medium"
+        android:text="+0 dB"
+        android:textColor="@color/lumina_primary"
+        android:textSize="13sp" />
+</LinearLayout>

@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="48dp"
+    android:height="48dp"
+    android:viewportWidth="48"
+    android:viewportHeight="48">
+
+    <!-- Back Photo Frame (L-shaped folded edge behind) -->
+    <path
+        android:fillColor="#0062E0"
+        android:pathData="M11,15 h-3 a4,4 0 0 0 -4,4 v21 a4,4 0 0 0 4,4 h21 a4,4 0 0 0 4,-4 v-3 h-21 a4,4 0 0 1 -4,-4 v-18 z" />
+
+    <!-- Front Photo Card -->
+    <path
+        android:fillColor="#0062E0"
+        android:pathData="M15,9 h24 a4,4 0 0 1 4,4 v24 a4,4 0 0 1 -4,4 h-24 a4,4 0 0 1 -4,-4 v-24 a4,4 0 0 1 4,-4 z" />
+
+    <!-- Mountain Landscape inside front photo (White Cutout) -->
+    <path
+        android:fillColor="#E9ECF2"
+        android:pathData="M16,33 L24,23 L29,29 L34,22 L40,33 Z" />
+
+    <!-- Sun inside front photo -->
+    <path
+        android:fillColor="#E9ECF2"
+        android:pathData="M23,17 m-2.5,0 a2.5,2.5 0 1,1 5,0 a2.5,2.5 0 1,1 -5,0" />
+
+</vector>

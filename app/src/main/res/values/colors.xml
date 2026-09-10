@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <color name="native_ad_tag_bg">#61637b</color>
+    <color name="native_text_color_body">#ffffff</color>
+    <color name="native_button_color">#61637b</color>
+    <color name="native_button_text_color">#ffffff</color>
+    <color name="native_ad_tag_text">#ffffff</color>
+    <color name="shimmer_color">#989898</color>
+    <color name="native_text_color_title">#ffffff</color>
+
+    <color name="callerAdBackground">#F3F3F3</color>
+    <color name="callerAdBodyColor">#7F9BA4</color>
+    <color name="callerShimmerAnimationColor">#CCE6E1</color>
+    <color name="callerTextColorPrimary">#49555F</color>
+    <color name="callerAppColor">#698AFF</color>
+    <color name="callerDividerColor">#0C000000</color>
+    <color name="callerTextColorSecondary">#70808D</color>
+    <color name="callerRipple">#717B78</color>
+    <color name="callerSecondaryBackgroundColor">#E9EAF0</color>
+    <color name="callerBackgroundColor">#F6F6F8</color>
+    <color name="callerAdHeadingColor">#000000</color>
+    <color name="black">#FF000000</color>
+    <color name="white">#FFFFFFFF</color>
+    <color name="active_tab_text">#0d51ef</color>
+    <color name="red">#c30010</color>
+
+    <color name="lumina_primary">#0062E0</color>
+    <color name="lumina_primary_pressed">#004EBA</color>
+    <color name="lumina_text_title">#111827</color>
+    <color name="lumina_text_body">#5B6471</color>
+    <color name="lumina_text_secondary">#717D8A</color>
+    <color name="lumina_bg_light">#FAFBFC</color>
+    <color name="lumina_card_bg">#F4F6F9</color>
+    <color name="lumina_icon_bg_blue">#DCE8F8</color>
+    <color name="lumina_icon_blue">#0062E0</color>
+    <color name="lumina_icon_bg_orange">#FDECE7</color>
+    <color name="lumina_icon_orange">#E05D2D</color>
+    <color name="lumina_illustration_card_bg">#E9ECF2</color>
+    <color name="lumina_illustration_dot_brown">#BD7A44</color>
+    <color name="lumina_illustration_dot_gray">#A6B0BE</color>
+    <color name="lumina_button_ripple">#26FFFFFF</color>
+
+    <color name="switch_track_on">@color/lumina_primary</color>
+    <color name="switch_track_off">#D1D1D6</color>
+
+    <color name="switch_thumb_on">#5B6471</color>
+    <color name="switch_thumb_off">#FFFFFF</color>
+
+</resources>

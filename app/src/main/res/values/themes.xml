@@ -1,0 +1,35 @@
+<resources xmlns:tools="http://schemas.android.com/tools">
+
+    <style name="Base.Theme.GalleryApp" parent="Theme.Material3.DayNight.NoActionBar">
+        <item name="colorPrimary">@color/lumina_primary</item>
+        <item name="colorControlActivated">@color/lumina_primary</item>
+    </style>
+
+    <style name="RatingBar">
+        <item name="colorControlActivated">#bf34ff</item>
+        <item name="colorControlNormal">#494949</item>
+    </style>
+
+    <style name="RoundedPhotoCorner">
+        <item name="cornerSize">4dp</item>
+    </style>
+
+    <style name="RoundedCardCorner">
+        <item name="cornerSize">16dp</item>
+    </style>
+
+    <style name="RoundedListThumbCorner">
+        <item name="cornerSize">12dp</item>
+    </style>
+
+    <style name="RoundedPillCorner">
+        <item name="cornerSize">28dp</item>
+    </style>
+
+    <style name="DrawerDialogAnimation">
+        <item name="android:windowEnterAnimation">@anim/slide_in_left</item>
+        <item name="android:windowExitAnimation">@anim/slide_out_left</item>
+    </style>
+
+    <style name="Theme.GalleryApp" parent="Base.Theme.GalleryApp" />
+</resources>

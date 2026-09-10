@@ -1,0 +1,245 @@
+<resources>
+    <string name="app_name">Gallery</string>
+
+    <string name="caller_ads" translatable="false">Ads</string>
+    <string name="Languages" translatable="false">Select Language</string>
+    <string name="English" translatable="false">English</string>
+    <string name="Spanish" translatable="false">Spanish</string>
+    <string name="Hindi" translatable="false">Hindi</string>
+    <string name="French" translatable="false">French</string>
+    <string name="Portuguese" translatable="false">Portuguese</string>
+    <string name="Italian" translatable="false">Italian</string>
+    <string name="German" translatable="false">German</string>
+    <string name="Urdu" translatable="false">Urdu</string>
+    <string name="Korean" translatable="false">Korean</string>
+    <string name="Persian" translatable="false">Persian</string>
+    <string name="Malaysian" translatable="false">Malaysian</string>
+    <string name="Japanese" translatable="false">Japanese</string>
+    <string name="Russian" translatable="false">Russian</string>
+
+
+    <string name="admob_appid" translatable="false">ca-app-pub-3940256099942544~3347511713</string>
+    <string name="admob_banner" translatable="false">ca-app-pub-3940256099942544/6300978111</string>
+    <string name="admob_banner_big" translatable="false">ca-app-pub-3940256099942544/9214589741</string>
+    <string name="admob_banner_caller" translatable="false">ca-app-pub-3940256099942544/6300978111</string>
+    <string name="admob_inter" translatable="false">ca-app-pub-3940256099942544/1033173712</string>
+    <string name="admob_inter_language" translatable="false">ca-app-pub-3940256099942544/1033173712</string>
+    <string name="admob_inter_splash" translatable="false">ca-app-pub-3940256099942544/1033173712</string>
+    <string name="admob_native" translatable="false">ca-app-pub-3940256099942544/2247696110</string>
+    <string name="admob_appopen" translatable="false">ca-app-pub-3940256099942544/9257395921</string>
+    <string name="splash_open" translatable="false">ca-app-pub-3940256099942544/9257395921</string>
+
+
+    <string name="media_detail">Media Detail</string>
+    <string name="lumina_gallery_title">Lumina Gallery</string>
+    <string name="lumina_splash_tagline">Curate your visual narrative with effortless sophistication.</string>
+    <string name="lumina_enter_gallery">Enter Gallery</string>
+    <string name="lumina_permission_title">Access Your Memories</string>
+    <string name="lumina_permission_description">Lumina Gallery needs access to your photos and videos to help you organize and view your media library.</string>
+    <string name="lumina_smart_org_title">Smart Organization</string>
+    <string name="lumina_smart_org_desc">Automatically group by date and location</string>
+    <string name="lumina_private_secure_title">Private &amp; Secure</string>
+    <string name="lumina_private_secure_desc">Your media stays on your device</string>
+    <string name="lumina_allow_access">Allow Access</string>
+    <string name="lumina_not_now">Not Now</string>
+    <string name="album">Album</string>
+    <string name="share">Share</string>
+    <string name="delete">Delete</string>
+    <string name="move">Move</string>
+    <string name="favorite">Favorite</string>
+    <string name="no_media_found_in_this_album">No media found in this album</string>
+    <string name="favorites">Favorites</string>
+    <string name="no_favorites_yet">No Favorites Yet</string>
+    <string name="photos_and_videos_you_mark_as_favorite_will_appear_here">Photos and videos you mark as favorite will appear here.</string>
+    <string name="select_language">Select Language</string>
+
+    <string name="photos">PHOTOS</string>
+    <string name="videos">VIDEOS</string>
+    <string name="edit">Edit</string>
+    <string name="more">More</string>
+    <string name="album_name">Album name</string>
+    <string name="enter_a_name_for_your_new_album_folder">Enter a name for your new album folder</string>
+    <string name="new_album">New Album</string>
+    <string name="cancel">Cancel</string>
+    <string name="create">Create</string>
+    <string name="delete_permanently">Delete Permanently?</string>
+    <string name="this_file_will_be_permanently_removed_from_your_device_storage">This file will be permanently removed from your device storage.</string>
+    <string name="media_name">Media Name</string>
+    <string name="rename">Rename</string>
+    <string name="set_as_wallpaper">Set as Wallpaper</string>
+    <string name="copy">Copy</string>
+    <string name="open_with">Open With</string>
+    <string name="details">Details</string>
+    <string name="file_name">File Name</string>
+    <string name="date_amp_time"><![CDATA[Date & Time]]></string>
+    <string name="resolution">Resolution</string>
+    <string name="file_size">File Size</string>
+    <string name="storage_path">Storage Path</string>
+    <string name="move_to_album">Move to Album</string>
+    <string name="select_destination_folder">Select destination folder</string>
+    <string name="create_new_album">Create New Album</string>
+    <string name="rename_file">Rename File</string>
+    <string name="enter_a_new_name_for_this_file">Enter a new name for this file</string>
+    <string name="select">Select</string>
+    <string name="columns">Columns</string>
+    <string name="view_type">View Type</string>
+    <string name="sort_by">Sort By</string>
+    <string name="sans_serif_black">sans-serif-black</string>
+    <string name="_4_columns">4 Columns</string>
+    <string name="ok">OK</string>
+    <string name="newest_on_top">Newest on top</string>
+    <string name="oldest_on_top">Oldest on top</string>
+    <string name="album_name_a_z">Album Name (a-z)</string>
+    <string name="album_name_z_a">Album Name (z-a)</string>
+    <string name="choose_how_your_media_is_displayed">Choose how your media is displayed</string>
+    <string name="grid_view">Grid View</string>
+    <string name="list_view">List View</string>
+    <string name="home_and_lock_screens">Home and Lock screens</string>
+    <string name="lock_screen">Lock screen</string>
+    <string name="home_screen">Home screen</string>
+    <string name="lumina_gallery">Lumina Gallery</string>
+    <string name="smart_media_manager">Smart Media Manager</string>
+    <string name="media_storage">Media Storage</string>
+    <string name="night_mode">Night Mode</string>
+    <string name="language">Language</string>
+    <string name="share_app">Share App</string>
+    <string name="rate_us">Rate Us</string>
+    <string name="privacy_policy">Privacy Policy</string>
+    <string name="settings">Settings</string>
+    <string name="search_albums">Search albums...</string>
+    <string name="no_albums_found_on_device">No albums found on device</string>
+    <string name="no_photos_found_on_device">No photos found on device</string>
+    <string name="no_videos_found_on_device">No videos found on device</string>
+    <string name="recent">Recent</string>
+    <string name="unfavorite">Unfavorite</string>
+    <string name="tap_items_to_select">Tap items to select</string>
+    <string name="please_select_at_least_1_item">Please select at least 1 item</string>
+    <string name="removed_item_s_from_favorites">Removed %1$d item(s) from Favorites</string>
+    <string name="added_item_s_to_favorites">Added %1$d item(s) to Favorites</string>
+    <string name="please_select_at_least_1_item_to_share">Please select at least 1 item to share</string>
+    <string name="share_media">Share Media</string>
+    <string name="unable_to_share_media">Unable to share media</string>
+    <string name="please_select_at_least_1_item_to_delete">Please select at least 1 item to delete</string>
+    <string name="delete_video">Delete Video?</string>
+    <string name="delete_photo">Delete Photo?</string>
+    <string name="delete_items">Delete %1$d Items?</string>
+    <string name="selected_item_s_will_be_permanently_deleted_from_storage">Selected item(s) will be permanently deleted from storage.</string>
+    <string name="items_selected">%1$d items selected</string>
+    <string name="permanently_deleted_items">Permanently deleted %1$d items</string>
+    <string name="please_select_at_least_1_item_to_move">Please select at least 1 item to move</string>
+    <string name="move_item_s_to_album">Move %1$d item(s) to album</string>
+    <string name="please_enter_album_name">Please enter album name</string>
+    <string name="moved_item_s_to">Moved %1$d item(s) to \"%2$s\"</string>
+    <string name="_1_item">1 item</string>
+    <string name="_0_selected">0 Selected</string>
+    <string name="selected">%1$s selected</string>
+    <string name="share_items">Share %1$d items</string>
+    <string name="unable_to_share_selected_media">Unable to share selected media</string>
+    <string name="this_item_will_be_permanently_deleted_from_your_device_storage_and_cannot_be_undone">This item will be permanently deleted from your device storage and cannot be undone.</string>
+    <string name="items_will_be_permanently_deleted_from_your_device_storage">%1$d items will be permanently deleted from your device storage.</string>
+    <string name="columns_applied">%1$d Columns applied</string>
+    <string name="_1_album">1 Album</string>
+    <string name="_1_photo">1 Photo</string>
+    <string name="_1_video">1 Video</string>
+    <string name="_1_total_media_item">1 Total Media Item</string>
+    <string name="could_not_open_camera_app">Could not open camera app</string>
+    <string name="please_enter_an_album_name">Please enter an album name</string>
+    <string name="sorted">Sorted</string>
+    <string name="name_a_z">Name (a-z)</string>
+    <string name="name_z_a">Name (z-a)</string>
+    <string name="select_all">Select All</string>
+    <string name="deselect_all">Deselect All</string>
+    <string name="selection_options">Selection Options</string>
+    <string name="permission_is_required_to_access_your_media">Permission is required to access your media</string>
+    <string name="no_video_to_play">No video to play</string>
+    <string name="cannot_play_this_video_format">Cannot play this video format</string>
+    <string name="fill_screen">Fill Screen</string>
+    <string name="fit_screen">Fit Screen</string>
+    <string name="unable_to_share_video">Unable to share video</string>
+    <string name="share_video">Share Video</string>
+    <string name="video_permanently_deleted">Video permanently deleted</string>
+    <string name="disable_loop">Disable Loop</string>
+    <string name="loop_video">Loop Video</string>
+    <string name="open_in_external_app">Open in External App</string>
+    <string name="rename_video">Rename Video</string>
+    <string name="video_details">Video Details</string>
+    <string name="loop_enabled">Loop enabled</string>
+    <string name="loop_disabled">Loop disabled</string>
+    <string name="no_external_video_player_found">No external video player found</string>
+    <string name="enter_a_new_name_for_this_video">Enter a new name for this video</string>
+    <string name="please_enter_a_valid_video_name">Please enter a valid video name</string>
+    <string name="failed_to_rename_video">Failed to rename video</string>
+    <string name="renamed_to">Renamed to %1$s</string>
+    <string name="album_created">Album \"%1$s\" created</string>
+    <string name="internal_storage">Internal Storage</string>
+    <string name="applied">%1$s applied</string>
+    <string name="image_not_available">Image not available</string>
+    <string name="newfolder">NewFolder</string>
+    <string name="moved_to">Moved to %1$s</string>
+    <string name="move_failed">Move failed</string>
+    <string name="added_to_favorites">Added to Favorites</string>
+    <string name="removed_from_favorites">Removed from Favorites</string>
+    <string name="rename_photo">Rename Photo</string>
+    <string name="please_enter_a_valid_name">Please enter a valid name</string>
+    <string name="failed_to_rename_file">Failed to rename file</string>
+    <string name="deleted_permanently">Deleted permanently</string>
+    <string name="wallpaper_set_on_successfully">Wallpaper set on %1$s successfully</string>
+    <string name="failed_to_apply_wallpaper">Failed to apply wallpaper</string>
+    <string name="no_app_found_to_open_this_file">No app found to open this file</string>
+    <string name="copy_to_album">Copy to album</string>
+    <string name="copied_to">Copied to \"%1$s\"</string>
+    <string name="failed_to_copy_file">Failed to copy file</string>
+    <string name="done">Done</string>
+    <string name="grid_columns">Grid Columns</string>
+    <string name="_2_columns">2 Columns</string>
+    <string name="_3_columns">3 Columns</string>
+    <string name="_5_columns">5 Columns</string>
+    <string name="albums">ALBUMS</string>
+    <string name="failed_to_initiate_deletion">Failed to initiate deletion</string>
+    <string name="unable_to_share_app">Unable to share app</string>
+    <string name="items_permanently_deleted">Items permanently deleted</string>
+    <string name="items">%1$s items</string>
+    <string name="hidden_album_is_locked">Hidden album is locked</string>
+    <string name="audio_equalizer">Audio Equalizer</string>
+    <string name="adjust_audio_frequencies">Adjust audio frequencies for the video</string>
+    <string name="total_media_items">%1$s Total Media Items</string>
+    <string name="moved_to_vault">Moved to vault</string>
+    <string name="delete_album">Delete Album?</string>
+    <string name="delete_albums">Delete %1$d Albums?</string>
+    <string name="albums_selected">%1$d Albums selected</string>
+    <string name="total_items">%1$d total items</string>
+    <string name="lock">Lock</string>
+    <string name="enter_password">Enter Password</string>
+    <string name="please_enter_your_4_digit_pin">Please enter your 4-digit PIN</string>
+    <string name="forgot_password">Forgot Password?</string>
+    <string name="security_question">Security Question</string>
+    <string name="please_answer_the_following_question_to_recover_your_password_if_you_forget_it">Please answer the following question to recover your password if you forget it.</string>
+    <string name="no_security_question_set">No security question set.</string>
+    <string name="set_password">Set Password</string>
+    <string name="confirm_password">Confirm Password</string>
+    <string name="enter_a_4_digit_pin">Enter a 4-digit PIN</string>
+    <string name="re_enter_your_4_digit_pin">Re-enter your 4-digit PIN</string>
+    <string name="pins_do_not_match_try_again">PINs do not match. Try again.</string>
+    <string name="access_granted">Access Granted</string>
+    <string name="incorrect_pin">Incorrect PIN</string>
+    <string name="set_security_question">Set Security Question</string>
+    <string name="this_will_help_you_recover_your_password_if_you_forget_it">This will help you recover your password if you forget it.</string>
+    <string name="what_is_your_favorite_pet_s_name">What is your favorite pet\'s name?</string>
+    <string name="what_city_were_you_born_in">What city were you born in?</string>
+    <string name="what_is_your_mother_s_maiden_name">What is your mother\'s maiden name?</string>
+    <string name="what_was_the_name_of_your_first_school">What was the name of your first school?</string>
+    <string name="what_is_your_favorite_book">What is your favorite book?</string>
+    <string name="password_set_successfully">Password set successfully!</string>
+    <string name="please_enter_an_answer">Please enter an answer</string>
+    <string name="answer_your_security_question_to_reset_the_pin">Answer your security question to reset the PIN.</string>
+    <string name="answer_correct_please_set_a_new_pin">Answer correct. Please set a new PIN.</string>
+    <string name="incorrect_answer">Incorrect answer</string>
+    <string name="please_select_at_least_1_item_to_unlock">Please select at least 1 item to unlock</string>
+    <string name="items_unlocked_successfully">Items unlocked successfully</string>
+    <string name="vault">Vault</string>
+    <string name="media">Media</string>
+    <string name="move_to_vault">Move to vault</string>
+    <string name="unlock">Unlock</string>
+    <string name="please_wait_for_video_to_load">Please wait for video to load</string>
+    <string name="equalizer_not_supported_on_this_device">Equalizer not supported on this device</string>
+</resources>

@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="120dp"
+    android:height="120dp"
+    android:viewportWidth="120"
+    android:viewportHeight="120">
+
+    <!-- Left Semi-Transparent Card -->
+    <path
+        android:fillColor="#F0F5FD"
+        android:pathData="M24,44 h24 a6,6 0 0 1 6,6 v26 a6,6 0 0 1 -6,6 h-24 a6,6 0 0 1 -6,-6 v-26 a6,6 0 0 1 6,-6 z" />
+    <path
+        android:fillColor="#0062E0"
+        android:pathData="M26,68 L33,56 L40,68 Z" />
+
+    <!-- Right Semi-Transparent Card -->
+    <path
+        android:fillColor="#F0F5FD"
+        android:pathData="M66,44 h24 a6,6 0 0 1 6,6 v26 a6,6 0 0 1 -6,6 h-24 a6,6 0 0 1 -6,-6 v-26 a6,6 0 0 1 6,-6 z" />
+    <path
+        android:fillColor="#0062E0"
+        android:pathData="M78,61 m-5,0 a5,5 0 1,1 10,0 a5,5 0 1,1 -10,0" />
+
+    <!-- Center Main Blue Circle -->
+    <path
+        android:fillColor="#0062E0"
+        android:pathData="M60,60 m-38,0 a38,38 0 1,1 76,0 a38,38 0 1,1 -76,0" />
+
+    <!-- Left White Cutout / Card Accent on Circle -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M26,50 h12 a4,4 0 0 1 4,4 v14 a4,4 0 0 1 -4,4 h-12 z" />
+    <path
+        android:fillColor="#0062E0"
+        android:pathData="M29,66 L34,58 L39,66 Z" />
+
+    <!-- Right White Cutout / Card Accent on Circle -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M78,50 h12 a4,4 0 0 1 4,4 v14 a4,4 0 0 1 -4,4 h-12 z" />
+    <path
+        android:fillColor="#0062E0"
+        android:pathData="M84,61 m-4,0 a4,4 0 1,1 8,0 a4,4 0 1,1 -8,0" />
+
+    <!-- Center Bottom Horizontal White Bar -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M48,70 h24 a3,3 0 0 1 3,3 v0 a3,3 0 0 1 -3,3 h-24 a3,3 0 0 1 -3,-3 v0 a3,3 0 0 1 3,-3 z" />
+
+</vector>
