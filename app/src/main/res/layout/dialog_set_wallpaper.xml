@@ -62,8 +62,8 @@
                 android:id="@+id/rbWallpaperHome"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:buttonTint="@color/lumina_primary"
-                app:buttonTint="@color/lumina_primary"
+                android:buttonTint="@color/accent_main"
+                app:buttonTint="@color/accent_main"
                 android:checked="true"
                 android:clickable="false"
                 android:focusable="false" />
@@ -105,8 +105,8 @@
                 android:id="@+id/rbWallpaperLock"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:buttonTint="@color/lumina_primary"
-                app:buttonTint="@color/lumina_primary"
+                android:buttonTint="@color/accent_main"
+                app:buttonTint="@color/accent_main"
                 android:clickable="false"
                 android:focusable="false" />
 
@@ -147,8 +147,8 @@
                 android:id="@+id/rbWallpaperBoth"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:buttonTint="@color/lumina_primary"
-                app:buttonTint="@color/lumina_primary"
+                android:buttonTint="@color/accent_main"
+                app:buttonTint="@color/accent_main"
                 android:clickable="false"
                 android:focusable="false" />
 

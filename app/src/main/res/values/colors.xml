@@ -30,6 +30,7 @@
 
 
 
+    <color name="accent_main">#0d51ef</color>
     <color name="lumina_primary">#0062E0</color>
     <color name="lumina_primary_pressed">#004EBA</color>
     <color name="lumina_text_title">#111827</color>

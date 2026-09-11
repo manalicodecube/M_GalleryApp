@@ -938,7 +938,6 @@ class MediaRepository {
         try {
             val wallpaperManager = android.app.WallpaperManager.getInstance(context)
 
-            // Prefer setStream as it's much more reliable and avoids large Binder transactions
             var streamSuccess = false
             try {
                 val inputStream = if (item.path.isNotEmpty()) {
@@ -965,7 +964,6 @@ class MediaRepository {
                 return@withContext true
             }
 
-            // Fallback to setBitmap if stream failed
             var bitmap: android.graphics.Bitmap? = null
             if (item.path.isNotEmpty()) {
                 val f = File(item.path)

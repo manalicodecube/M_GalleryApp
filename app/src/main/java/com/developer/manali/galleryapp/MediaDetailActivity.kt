@@ -17,6 +17,7 @@ import android.view.Gravity
 import android.view.View
 import android.view.ViewGroup
 import android.view.Window
+import android.view.WindowManager
 import android.widget.EditText
 import android.widget.ImageView
 import android.widget.LinearLayout
@@ -579,9 +580,19 @@ class MediaDetailActivity : BaseActivity() {
     private fun showDeleteConfirmDialog() {
         val item = currentMediaItem ?: return
 
-        val bottomSheetDialog = BottomSheetDialog(this)
+        val dialog = Dialog(this)
+        dialog.requestWindowFeature(Window.FEATURE_NO_TITLE)
+        dialog.setCancelable(true)
+        dialog.setCanceledOnTouchOutside(true)
+
         val dialogView = layoutInflater.inflate(R.layout.dialog_delete_confirm, null)
-        bottomSheetDialog.setContentView(dialogView)
+        dialog.setContentView(dialogView)
+
+        dialog.window?.apply {
+            setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
+            clearFlags(WindowManager.LayoutParams.FLAG_DIM_BEHIND)
+            decorView.setBackgroundColor(Color.TRANSPARENT)
+        }
 
         val tvTitle = dialogView.findViewById<TextView>(R.id.tvDeleteDialogTitle)
         val tvName = dialogView.findViewById<TextView>(R.id.tvDeleteVideoName)
@@ -599,17 +610,28 @@ class MediaDetailActivity : BaseActivity() {
             if (durStr.isNotEmpty() && durStr != "0:00") "$sizeStr • $durStr" else sizeStr
 
         btnCancel.setOnClickListener {
-            bottomSheetDialog.dismiss()
+            dialog.dismiss()
         }
 
         btnConfirm.setOnClickListener {
-            bottomSheetDialog.dismiss()
+            dialog.dismiss()
             deleteCurrentMedia()
         }
 
-        bottomSheetDialog.show()
-    }
+        dialog.show()
 
+        dialog.window?.let { window ->
+            val density = resources.displayMetrics.density
+            val widthPx = (320 * density).toInt()
+
+            val params = window.attributes
+            params.gravity = Gravity.CENTER
+            params.width = widthPx
+            params.height = ViewGroup.LayoutParams.WRAP_CONTENT
+            window.attributes = params
+            window.setLayout(widthPx, ViewGroup.LayoutParams.WRAP_CONTENT)
+        }
+    }
     private fun deleteCurrentMedia() {
         val item = currentMediaItem ?: return
         lifecycleScope.launch(Dispatchers.IO) {
@@ -699,6 +721,12 @@ class MediaDetailActivity : BaseActivity() {
         val dialogView = layoutInflater.inflate(R.layout.dialog_detail_more_menu, null)
         dialog.setContentView(dialogView)
 
+        dialog.window?.apply {
+            setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
+            clearFlags(WindowManager.LayoutParams.FLAG_DIM_BEHIND)
+            decorView.setBackgroundColor(Color.TRANSPARENT)
+        }
+
         dialogView.findViewById<View>(R.id.layoutDetailMenuRename).setOnClickListener {
             dialog.dismiss()
             showRenameDialog()
@@ -733,26 +761,46 @@ class MediaDetailActivity : BaseActivity() {
         dialog.show()
 
         dialog.window?.let { window ->
-            window.setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
-            window.clearFlags(android.view.WindowManager.LayoutParams.FLAG_DIM_BEHIND)
-
             val density = resources.displayMetrics.density
             val widthPx = (220 * density).toInt()
             val marginX = (16 * density).toInt()
-            val marginY = (68 * density).toInt()
+            val gapY = (12 * density).toInt()
 
-            val params = window.attributes
-            params.gravity = Gravity.BOTTOM or Gravity.END
-            params.x = marginX
-            params.y = marginY
-            params.width = widthPx
-            params.height = ViewGroup.LayoutParams.WRAP_CONTENT
-            window.attributes = params
-            window.setLayout(widthPx, ViewGroup.LayoutParams.WRAP_CONTENT)
-            window.decorView.setPadding(0, 0, 0, 0)
+
+            val viewPager = findViewById<View>(R.id.viewPagerMediaDetail)
+
+            if (viewPager != null) {
+                val location = IntArray(2)
+                viewPager.getLocationOnScreen(location)
+                val pagerTop = location[1]
+                val pagerBottom = pagerTop + viewPager.height
+                val screenHeight = resources.displayMetrics.heightPixels
+
+                val distanceFromBottom = screenHeight - pagerBottom + gapY
+
+                val params = window.attributes
+                params.gravity = Gravity.BOTTOM or Gravity.END
+                params.x = marginX
+                params.y = distanceFromBottom
+                params.width = widthPx
+                params.height = ViewGroup.LayoutParams.WRAP_CONTENT
+                window.attributes = params
+                window.setLayout(widthPx, ViewGroup.LayoutParams.WRAP_CONTENT)
+                window.decorView.setPadding(0, 0, 0, 0)
+            } else {
+
+                val params = window.attributes
+                params.gravity = Gravity.BOTTOM or Gravity.END
+                params.x = marginX
+                params.y = (98 * density).toInt()
+                params.width = widthPx
+                params.height = ViewGroup.LayoutParams.WRAP_CONTENT
+                window.attributes = params
+                window.setLayout(widthPx, ViewGroup.LayoutParams.WRAP_CONTENT)
+                window.decorView.setPadding(0, 0, 0, 0)
+            }
         }
     }
-
     private fun showWallpaperOptionsDialog(item: MediaItem) {
         val bottomSheetDialog = BottomSheetDialog(this)
         val dialogView = layoutInflater.inflate(R.layout.dialog_set_wallpaper, null)

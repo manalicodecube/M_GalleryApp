@@ -71,7 +71,7 @@
                     android:layout_width="22dp"
                     android:layout_height="22dp"
                     android:src="@drawable/albums"
-                    app:tint="@color/lumina_primary" />
+                    app:tint="@color/accent_main" />
 
                 <TextView
                     android:id="@+id/tvDrawerAlbumCount"
@@ -111,7 +111,7 @@
                     android:layout_width="22dp"
                     android:layout_height="22dp"
                     android:src="@drawable/photo"
-                    app:tint="@color/lumina_primary" />
+                    app:tint="@color/accent_main" />
 
                 <TextView
                     android:id="@+id/tvDrawerPhotoCount"
@@ -150,7 +150,7 @@
                     android:layout_width="22dp"
                     android:layout_height="22dp"
                     android:src="@drawable/video"
-                    app:tint="@color/lumina_primary" />
+                    app:tint="@color/accent_main" />
 
                 <TextView
                     android:id="@+id/tvDrawerVideoCount"

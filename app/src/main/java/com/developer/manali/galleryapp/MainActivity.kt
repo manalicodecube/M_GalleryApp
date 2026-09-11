@@ -219,18 +219,6 @@ class MainActivity : BaseActivity() {
         BannerAdsManager.initialize(this)
         googleBannerAds = GoogleBannerAds()
 
-        //        val incAds = binding.incAdsView
-        //        googleBannerAds?.setupAdsViews(
-        //            activity = this,
-        //            skipAllBannerAds = false,
-        //            showBannerShimmerLayout = true,
-        //            rlMainGoogleBanner = incAds.rlMainGoogleAds,
-        //            flSpaceLayout = incAds.flSpaceLayout,
-        //            tvSpaceAds = incAds.tvSpaceAds,
-        //            spMain = incAds.spMain,
-        //            flShimmerGoogleAds = incAds.flShimmerGoogleAds,
-        //            flGoogleAds = incAds.flGoogleAds
-        //        )
 
         bannerAdView = AdView(this).apply {
             adUnitId = getString(R.string.admob_banner)
@@ -325,14 +313,6 @@ class MainActivity : BaseActivity() {
             }
         }
 
-//        binding.btnCamera.setOnClickListener {
-//            if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED) {
-//                openOriginalDeviceCamera()
-//            } else {
-//                cameraPermissionLauncher.launch(Manifest.permission.CAMERA)
-//            }
-//        }
-
 
         binding.btnCamera.setOnClickListener {
             openOriginalDeviceCamera()
@@ -387,18 +367,6 @@ class MainActivity : BaseActivity() {
             startActivity(intent)
         }
 
-//        val prefs = PreferencesUtility.getInstance(this)
-//        sideMenu.switchNightMode.isChecked = prefs.isNightMode()
-//
-//        sideMenu.switchNightMode.setOnCheckedChangeListener { _, isChecked ->
-//            prefs.setNightMode(isChecked)
-//            if (isChecked) {
-//                AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES)
-//            } else {
-//                AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO)
-//            }
-//            binding.drawerLayout.closeDrawer(Gravity.START)
-//        }
 
         val prefs = PreferencesUtility.getInstance(this)
         val switch = sideMenu.switchNightMode
@@ -658,81 +626,6 @@ class MainActivity : BaseActivity() {
         }
     }
 
-//    private fun showRightMenuDialog() {
-//        val dialog = Dialog(this)
-//        dialog.requestWindowFeature(Window.FEATURE_NO_TITLE)
-//        dialog.setCancelable(true)
-//        dialog.setCanceledOnTouchOutside(true)
-//
-//        val dialogView = layoutInflater.inflate(R.layout.dialog_right_menu, null)
-//        dialog.setContentView(dialogView)
-//
-//        val currentTab = binding.viewPagerMain.currentItem
-//        val layoutSelect = dialogView.findViewById<View>(R.id.layoutMenuSelect)
-//        val dividerSelect = dialogView.findViewById<View>(R.id.dividerMenuSelect)
-//        val layoutColumns = dialogView.findViewById<View>(R.id.layoutMenuColumns)
-//        val dividerColumns = dialogView.findViewById<View>(R.id.dividerMenuColumns)
-//
-//        val appPrefs = AppPreferences.getInstance(this)
-//        val isGrid = when (currentTab) {
-//            0 -> !appPrefs.isAlbumsListView
-//            2 -> !appPrefs.isVideosListView
-//            else -> !appPrefs.isPhotosListView
-//        }
-//
-//        layoutSelect.visibility = View.VISIBLE
-//        dividerSelect?.visibility = View.VISIBLE
-//
-//        if (isGrid) {
-//            layoutColumns.visibility = View.VISIBLE
-//            dividerColumns?.visibility = View.VISIBLE
-//        } else {
-//            layoutColumns.visibility = View.GONE
-//            dividerColumns?.visibility = View.GONE
-//        }
-//
-//        layoutSelect.setOnClickListener {
-//            dialog.dismiss()
-//            enterSelectionMode()
-//        }
-//
-//        layoutColumns.setOnClickListener {
-//            dialog.dismiss()
-//            showColumnsDialog()
-//        }
-//
-//        dialogView.findViewById<View>(R.id.layoutMenuViewType).setOnClickListener {
-//            dialog.dismiss()
-//            showViewTypeDialog()
-//        }
-//
-//        dialogView.findViewById<View>(R.id.layoutMenuSortBy).setOnClickListener {
-//            dialog.dismiss()
-//            showSortByDialog()
-//        }
-//
-//        dialog.show()
-//
-//        dialog.window?.let { window ->
-//            window.setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
-//            window.clearFlags(android.view.WindowManager.LayoutParams.FLAG_DIM_BEHIND)
-//
-//            val density = resources.displayMetrics.density
-//            val widthPx = (210 * density).toInt()
-//            val marginX = (16 * density).toInt()
-//            val marginY = (56 * density).toInt()
-//
-//            val params = window.attributes
-//            params.gravity = Gravity.TOP or Gravity.END
-//            params.x = marginX
-//            params.y = marginY
-//            params.width = widthPx
-//            params.height = ViewGroup.LayoutParams.WRAP_CONTENT
-//            window.attributes = params
-//            window.setLayout(widthPx, ViewGroup.LayoutParams.WRAP_CONTENT)
-//            window.decorView.setPadding(0, 0, 0, 0)
-//        }
-//    }
 
     private fun showColumnsDialog() {
         val bottomSheetDialog = com.google.android.material.bottomsheet.BottomSheetDialog(this)

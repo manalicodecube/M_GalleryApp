@@ -86,7 +86,7 @@
                     android:background="?attr/selectableItemBackgroundBorderless"
                     android:contentDescription="Add New Album"
                     android:padding="9dp"
-                    android:src="@drawable/plus"
+                    android:src="@drawable/folder"
                     app:layout_constraintBottom_toBottomOf="parent"
                     app:layout_constraintEnd_toStartOf="@id/btnCamera"
                     app:layout_constraintTop_toTopOf="parent"

@@ -858,10 +858,8 @@ class AlbumDetailActivity : BaseActivity() {
         val isListView = AppPreferences.getInstance(this).isListView
         if (isListView) {
             layoutColumns.visibility = View.GONE
-//            dialogView.findViewById<View>(R.id.dividerMenuColumns)?.visibility = View.GONE
         } else {
             layoutColumns.visibility = View.VISIBLE
-//            dialogView.findViewById<View>(R.id.dividerMenuColumns)?.visibility = View.VISIBLE
         }
 
         layoutSelect.setOnClickListener {

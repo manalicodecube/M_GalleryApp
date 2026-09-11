@@ -68,8 +68,8 @@
                 android:id="@+id/rbViewTypeGrid"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:buttonTint="@color/lumina_primary"
-                app:buttonTint="@color/lumina_primary"
+                android:buttonTint="@color/accent_main"
+                app:buttonTint="@color/accent_main"
                 android:clickable="false"
                 android:focusable="false" />
 
@@ -108,8 +108,8 @@
                 android:id="@+id/rbViewTypeList"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:buttonTint="@color/lumina_primary"
-                app:buttonTint="@color/lumina_primary"
+                android:buttonTint="@color/accent_main"
+                app:buttonTint="@color/accent_main"
                 android:clickable="false"
                 android:focusable="false" />
 
