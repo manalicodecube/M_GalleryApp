@@ -6,7 +6,7 @@
     android:id="@+id/main"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/white"
+    android:background="@color/whites"
     android:fitsSystemWindows="true">
 
     <androidx.drawerlayout.widget.DrawerLayout
@@ -140,6 +140,7 @@
                 android:id="@+id/viewPagerMain"
                 android:layout_width="match_parent"
                 android:layout_height="0dp"
+                android:background="@color/whites"
                 app:layout_constraintBottom_toTopOf="@id/bottomNavigationContainer"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintHorizontal_bias="1.0"
@@ -151,7 +152,7 @@
                 android:id="@+id/bottomNavigationContainer"
                 android:layout_width="match_parent"
                 android:layout_height="64dp"
-                android:background="@color/white"
+                android:background="@color/whites"
                 android:elevation="8dp"
                 android:gravity="center_vertical"
                 android:orientation="horizontal"

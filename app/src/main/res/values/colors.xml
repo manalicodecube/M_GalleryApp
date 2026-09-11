@@ -25,6 +25,11 @@
     <color name="active_tab_text">#0d51ef</color>
     <color name="red">#c30010</color>
 
+
+    <color name="whites">#FFFFFFFF</color>
+
+
+
     <color name="lumina_primary">#0062E0</color>
     <color name="lumina_primary_pressed">#004EBA</color>
     <color name="lumina_text_title">#111827</color>

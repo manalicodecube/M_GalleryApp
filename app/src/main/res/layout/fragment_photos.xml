@@ -17,6 +17,7 @@
             android:clipToPadding="false"
             android:paddingHorizontal="8dp"
             android:paddingTop="8dp"
+            android:background="@color/whites"
             android:paddingBottom="16dp" />
 
     </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>

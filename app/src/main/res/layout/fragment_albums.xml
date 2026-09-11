@@ -3,7 +3,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/white">
+    android:background="@color/whites">
 
     <LinearLayout
         android:id="@+id/layoutAlbumSearch"
@@ -71,6 +71,7 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:clipToPadding="false"
+            android:background="@color/whites"
             android:paddingHorizontal="12dp"
             android:paddingBottom="24dp" />
 
