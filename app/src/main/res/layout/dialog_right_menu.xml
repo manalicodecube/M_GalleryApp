@@ -4,7 +4,6 @@
     android:layout_width="210dp"
     android:layout_height="wrap_content"
     android:background="@drawable/bg_right_menu_rounded"
-    android:elevation="12dp"
     android:orientation="vertical"
     android:paddingVertical="8dp">
 
@@ -38,6 +37,7 @@
         android:id="@+id/dividerMenuSelect"
         android:layout_width="match_parent"
         android:layout_height="1dp"
+        android:visibility="gone"
         android:layout_marginHorizontal="12dp"
         android:background="#F0F2F5" />
 
@@ -71,6 +71,7 @@
         android:id="@+id/dividerMenuColumns"
         android:layout_width="match_parent"
         android:layout_height="1dp"
+        android:visibility="gone"
         android:layout_marginHorizontal="12dp"
         android:background="#F0F2F5" />
 
@@ -104,6 +105,7 @@
         android:layout_width="match_parent"
         android:layout_height="1dp"
         android:layout_marginHorizontal="12dp"
+        android:visibility="gone"
         android:background="#F0F2F5" />
 
     <LinearLayout

@@ -59,7 +59,7 @@
                 android:id="@+id/menuCardAlbums"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:layout_marginHorizontal="2dp"
+                android:layout_marginEnd="4dp"
                 android:layout_weight="1"
                 android:background="@drawable/bg_drawer_stat_card"
                 android:gravity="center"
@@ -139,7 +139,6 @@
                 android:id="@+id/menuCardVideos"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:layout_marginStart="4dp"
                 android:layout_weight="1"
                 android:background="@drawable/bg_drawer_stat_card"
                 android:gravity="center"
@@ -308,8 +307,8 @@
                     android:layout_height="wrap_content"
                     android:background="@null"
                     android:thumb="@drawable/custom_switch_thumb"
-                    app:track="@drawable/custom_switch_track"
-                    app:showText="false" />
+                    app:showText="false"
+                    app:track="@drawable/custom_switch_track" />
             </LinearLayout>
 
             <LinearLayout

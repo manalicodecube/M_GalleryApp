@@ -2,9 +2,8 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="220dp"
-    android:layout_height="wrap_content"
+    android:layout_height="260dp"
     android:background="@drawable/bg_right_menu_rounded"
-    android:elevation="12dp"
     android:orientation="vertical"
     android:paddingVertical="8dp">
 
@@ -34,11 +33,6 @@
 
     </LinearLayout>
 
-    <View
-        android:layout_width="match_parent"
-        android:layout_height="1dp"
-        android:layout_marginHorizontal="12dp"
-        android:background="#F0F2F5" />
 
     <LinearLayout
         android:id="@+id/layoutDetailMenuWallpaper"
@@ -66,11 +60,6 @@
 
     </LinearLayout>
 
-    <View
-        android:layout_width="match_parent"
-        android:layout_height="1dp"
-        android:layout_marginHorizontal="12dp"
-        android:background="#F0F2F5" />
 
     <LinearLayout
         android:id="@+id/layoutDetailMenuCopy"
@@ -98,11 +87,6 @@
 
     </LinearLayout>
 
-    <View
-        android:layout_width="match_parent"
-        android:layout_height="1dp"
-        android:layout_marginHorizontal="12dp"
-        android:background="#F0F2F5" />
 
     <LinearLayout
         android:id="@+id/layoutDetailMenuOpenWith"
@@ -130,11 +114,6 @@
 
     </LinearLayout>
 
-    <View
-        android:layout_width="match_parent"
-        android:layout_height="1dp"
-        android:layout_marginHorizontal="12dp"
-        android:background="#F0F2F5" />
 
     <LinearLayout
         android:id="@+id/layoutDetailMenuMovetoVault"

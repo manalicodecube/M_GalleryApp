@@ -16,6 +16,7 @@ import android.view.Gravity
 import android.view.View
 import android.view.ViewGroup
 import android.view.Window
+import android.view.WindowManager
 import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
@@ -575,6 +576,7 @@ class MainActivity : BaseActivity() {
         etName.requestFocus()
     }
 
+
     private fun showRightMenuDialog() {
         val dialog = Dialog(this)
         dialog.requestWindowFeature(Window.FEATURE_NO_TITLE)
@@ -584,12 +586,20 @@ class MainActivity : BaseActivity() {
         val dialogView = layoutInflater.inflate(R.layout.dialog_right_menu, null)
         dialog.setContentView(dialogView)
 
+        dialog.window?.apply {
+            setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
+            clearFlags(WindowManager.LayoutParams.FLAG_DIM_BEHIND)
+
+            decorView.setBackgroundColor(Color.TRANSPARENT)
+            setDimAmount(0f)
+        }
+
         val currentTab = binding.viewPagerMain.currentItem
         val layoutSelect = dialogView.findViewById<View>(R.id.layoutMenuSelect)
         val dividerSelect = dialogView.findViewById<View>(R.id.dividerMenuSelect)
         val layoutColumns = dialogView.findViewById<View>(R.id.layoutMenuColumns)
         val dividerColumns = dialogView.findViewById<View>(R.id.dividerMenuColumns)
-        
+
         val appPrefs = AppPreferences.getInstance(this)
         val isGrid = when (currentTab) {
             0 -> !appPrefs.isAlbumsListView
@@ -598,11 +608,11 @@ class MainActivity : BaseActivity() {
         }
 
         layoutSelect.visibility = View.VISIBLE
-        dividerSelect?.visibility = View.VISIBLE
+        dividerSelect?.visibility = View.GONE
 
         if (isGrid) {
             layoutColumns.visibility = View.VISIBLE
-            dividerColumns?.visibility = View.VISIBLE
+            dividerColumns?.visibility = View.GONE
         } else {
             layoutColumns.visibility = View.GONE
             dividerColumns?.visibility = View.GONE
@@ -631,9 +641,6 @@ class MainActivity : BaseActivity() {
         dialog.show()
 
         dialog.window?.let { window ->
-            window.setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
-            window.clearFlags(android.view.WindowManager.LayoutParams.FLAG_DIM_BEHIND)
-
             val density = resources.displayMetrics.density
             val widthPx = (210 * density).toInt()
             val marginX = (16 * density).toInt()
@@ -650,6 +657,82 @@ class MainActivity : BaseActivity() {
             window.decorView.setPadding(0, 0, 0, 0)
         }
     }
+
+//    private fun showRightMenuDialog() {
+//        val dialog = Dialog(this)
+//        dialog.requestWindowFeature(Window.FEATURE_NO_TITLE)
+//        dialog.setCancelable(true)
+//        dialog.setCanceledOnTouchOutside(true)
+//
+//        val dialogView = layoutInflater.inflate(R.layout.dialog_right_menu, null)
+//        dialog.setContentView(dialogView)
+//
+//        val currentTab = binding.viewPagerMain.currentItem
+//        val layoutSelect = dialogView.findViewById<View>(R.id.layoutMenuSelect)
+//        val dividerSelect = dialogView.findViewById<View>(R.id.dividerMenuSelect)
+//        val layoutColumns = dialogView.findViewById<View>(R.id.layoutMenuColumns)
+//        val dividerColumns = dialogView.findViewById<View>(R.id.dividerMenuColumns)
+//
+//        val appPrefs = AppPreferences.getInstance(this)
+//        val isGrid = when (currentTab) {
+//            0 -> !appPrefs.isAlbumsListView
+//            2 -> !appPrefs.isVideosListView
+//            else -> !appPrefs.isPhotosListView
+//        }
+//
+//        layoutSelect.visibility = View.VISIBLE
+//        dividerSelect?.visibility = View.VISIBLE
+//
+//        if (isGrid) {
+//            layoutColumns.visibility = View.VISIBLE
+//            dividerColumns?.visibility = View.VISIBLE
+//        } else {
+//            layoutColumns.visibility = View.GONE
+//            dividerColumns?.visibility = View.GONE
+//        }
+//
+//        layoutSelect.setOnClickListener {
+//            dialog.dismiss()
+//            enterSelectionMode()
+//        }
+//
+//        layoutColumns.setOnClickListener {
+//            dialog.dismiss()
+//            showColumnsDialog()
+//        }
+//
+//        dialogView.findViewById<View>(R.id.layoutMenuViewType).setOnClickListener {
+//            dialog.dismiss()
+//            showViewTypeDialog()
+//        }
+//
+//        dialogView.findViewById<View>(R.id.layoutMenuSortBy).setOnClickListener {
+//            dialog.dismiss()
+//            showSortByDialog()
+//        }
+//
+//        dialog.show()
+//
+//        dialog.window?.let { window ->
+//            window.setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
+//            window.clearFlags(android.view.WindowManager.LayoutParams.FLAG_DIM_BEHIND)
+//
+//            val density = resources.displayMetrics.density
+//            val widthPx = (210 * density).toInt()
+//            val marginX = (16 * density).toInt()
+//            val marginY = (56 * density).toInt()
+//
+//            val params = window.attributes
+//            params.gravity = Gravity.TOP or Gravity.END
+//            params.x = marginX
+//            params.y = marginY
+//            params.width = widthPx
+//            params.height = ViewGroup.LayoutParams.WRAP_CONTENT
+//            window.attributes = params
+//            window.setLayout(widthPx, ViewGroup.LayoutParams.WRAP_CONTENT)
+//            window.decorView.setPadding(0, 0, 0, 0)
+//        }
+//    }
 
     private fun showColumnsDialog() {
         val bottomSheetDialog = com.google.android.material.bottomsheet.BottomSheetDialog(this)
