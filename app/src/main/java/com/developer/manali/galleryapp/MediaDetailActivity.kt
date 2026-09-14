@@ -11,6 +11,7 @@ import android.media.MediaScannerConnection
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
+import android.os.Environment
 import android.provider.MediaStore
 import android.util.Log
 import android.view.Gravity
@@ -49,7 +50,6 @@ import com.google.android.gms.ads.AdRequest
 import com.google.android.gms.ads.AdListener
 import com.google.android.gms.ads.LoadAdError
 import java.io.File
-import java.lang.String
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -66,6 +66,25 @@ class MediaDetailActivity : BaseActivity() {
         if (result.resultCode == RESULT_OK) {
             onMediaDeletedSuccess()
         }
+    }
+
+    private var pendingRenameItem: MediaItem? = null
+    private var pendingRenameName: String? = null
+
+    private val renameLauncher = registerForActivityResult(
+        ActivityResultContracts.StartIntentSenderForResult()
+    ) { result ->
+        if (result.resultCode == RESULT_OK) {
+            val item = pendingRenameItem
+            val name = pendingRenameName
+            if (item != null && name != null) {
+                executeRename(item, name)
+            }
+        } else {
+            Toast.makeText(this, getString(R.string.permission_required_to_rename), Toast.LENGTH_SHORT).show()
+        }
+        pendingRenameItem = null
+        pendingRenameName = null
     }
 
     private val passwordSetupLauncherForVault = registerForActivityResult(
@@ -98,11 +117,58 @@ class MediaDetailActivity : BaseActivity() {
     }
     private val startEditorForResult =
         registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
-            if (result.resultCode == Activity.RESULT_OK) {
-                val data: Intent? = result.data
-                val editedImageUri: Uri? = data?.data
-                if (editedImageUri != null) {
+            val data: Intent? = result.data
+            val editedImageUri: Uri? = data?.data
+            val originalPath = currentMediaItem?.path
+
+            val pathsToScan = mutableListOf<String>()
+            if (!originalPath.isNullOrEmpty()) {
+                pathsToScan.add(originalPath)
+                try {
+                    File(originalPath).parentFile?.let { parent ->
+                        parent.listFiles()?.forEach { file ->
+                            if (file.isFile && (file.extension.equals("jpg", true) || file.extension.equals("jpeg", true) || file.extension.equals("png", true) || file.extension.equals("webp", true))) {
+                                pathsToScan.add(file.absolutePath)
+                            }
+                        }
+                    }
+                } catch (_: Exception) {}
+            }
+
+            if (editedImageUri != null) {
+                try {
+                    val p = getRealFilePathFromUri(editedImageUri)
+                    if (!p.isNullOrEmpty()) pathsToScan.add(p)
+                } catch (_: Exception) {}
+            }
+
+            try {
+                val picturesDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES)
+                picturesDir.listFiles()?.forEach { f ->
+                    if (f.isFile && (f.extension.equals("jpg", true) || f.extension.equals("jpeg", true) || f.extension.equals("png", true) || f.extension.equals("webp", true))) {
+                        pathsToScan.add(f.absolutePath)
+                    }
                 }
+            } catch (_: Exception) {}
+
+            com.developer.manali.galleryapp.data.MediaRepository.clearCache()
+
+            if (pathsToScan.isNotEmpty()) {
+                MediaScannerConnection.scanFile(
+                    this,
+                    pathsToScan.distinct().toTypedArray(),
+                    null
+                ) { _, _ ->
+                    lifecycleScope.launch(Dispatchers.Main) {
+                        sendBroadcast(Intent("com.developer.manali.galleryapp.MEDIA_UPDATED"))
+                        sendBroadcast(Intent("com.developer.manali.galleryapp.ALBUMS_UPDATED"))
+                        loadMediaData()
+                    }
+                }
+            } else {
+                sendBroadcast(Intent("com.developer.manali.galleryapp.MEDIA_UPDATED"))
+                sendBroadcast(Intent("com.developer.manali.galleryapp.ALBUMS_UPDATED"))
+                loadMediaData()
             }
         }
     private val mediaRepository = MediaRepository()
@@ -329,7 +395,7 @@ class MediaDetailActivity : BaseActivity() {
     private fun openGooglePhotosEditor(imageUri: Uri) {
         val intent = Intent(Intent.ACTION_EDIT).apply {
             setDataAndType(imageUri, "image/*")
-            addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+            addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_WRITE_URI_PERMISSION)
             val packageManager = packageManager
             val isGooglePhotosInstalled = try {
                 packageManager.getPackageInfo("com.google.android.apps.photos", 0)
@@ -341,7 +407,19 @@ class MediaDetailActivity : BaseActivity() {
                 setPackage("com.google.android.apps.photos")
             }
         }
-        startEditorForResult.launch(intent)
+        try {
+            startEditorForResult.launch(intent)
+        } catch (e: Exception) {
+            try {
+                val genericIntent = Intent(Intent.ACTION_EDIT).apply {
+                    setDataAndType(imageUri, "image/*")
+                    addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_WRITE_URI_PERMISSION)
+                }
+                startEditorForResult.launch(Intent.createChooser(genericIntent, "Edit Image"))
+            } catch (e2: Exception) {
+                Toast.makeText(this, getString(R.string.no_app_found_to_open_this_file), Toast.LENGTH_SHORT).show()
+            }
+        }
     }
 
 
@@ -419,23 +497,40 @@ class MediaDetailActivity : BaseActivity() {
                 return@setOnClickListener
             }
             dialog.dismiss()
+            executeRename(item, enteredName)
+        }
 
-            lifecycleScope.launch {
-                val updatedItem =
-                    mediaRepository.renameMediaItem(this@MediaDetailActivity, item, enteredName)
-                if (updatedItem != null) {
+        dialog.show()
+    }
+
+    private fun executeRename(item: MediaItem, enteredName: String) {
+        lifecycleScope.launch {
+            when (val result = mediaRepository.renameMediaItem(this@MediaDetailActivity, item, enteredName)) {
+                is MediaRepository.RenameResult.Success -> {
+                    val updatedItem = result.updatedItem
                     val pos = binding.viewPagerMediaDetail.currentItem
                     if (pos in 0 until mediaList.size) {
                         mediaList[pos] = updatedItem
+                        com.developer.manali.galleryapp.data.MediaDataHolder.mediaList = mediaList
                         mediaPagerAdapter.submitList(ArrayList(mediaList))
                         binding.tvDetailTitle.text = updatedItem.displayName
                     }
+                    sendBroadcast(Intent("com.developer.manali.galleryapp.ALBUMS_UPDATED"))
+                    setResult(RESULT_OK)
                     Toast.makeText(
                         this@MediaDetailActivity,
-                        getString(R.string.renamed_to,updatedItem.displayName),
+                        getString(R.string.renamed_to, updatedItem.displayName),
                         Toast.LENGTH_SHORT
                     ).show()
-                } else {
+                }
+                is MediaRepository.RenameResult.PermissionRequired -> {
+                    pendingRenameItem = item
+                    pendingRenameName = enteredName
+                    val intentSenderRequest =
+                        androidx.activity.result.IntentSenderRequest.Builder(result.intentSender).build()
+                    renameLauncher.launch(intentSenderRequest)
+                }
+                is MediaRepository.RenameResult.Failed -> {
                     Toast.makeText(
                         this@MediaDetailActivity,
                         getString(R.string.failed_to_rename_file),
@@ -444,8 +539,6 @@ class MediaDetailActivity : BaseActivity() {
                 }
             }
         }
-
-        dialog.show()
     }
 
 
@@ -513,6 +606,10 @@ class MediaDetailActivity : BaseActivity() {
         btnCreate.setOnClickListener {
             val name = etName.text.toString().trim()
             if (name.isNotEmpty()) {
+                if (com.developer.manali.galleryapp.data.MediaRepository.albumExists(this, name)) {
+                    Toast.makeText(this, getString(R.string.album_already_exists), Toast.LENGTH_SHORT).show()
+                    return@setOnClickListener
+                }
                 dialog.dismiss()
                 executeMove(null, name, selected)
             } else {
@@ -1030,6 +1127,10 @@ class MediaDetailActivity : BaseActivity() {
         btnCreate.setOnClickListener {
             val name = etName.text.toString().trim()
             if (name.isNotEmpty()) {
+                if (com.developer.manali.galleryapp.data.MediaRepository.albumExists(this, name)) {
+                    Toast.makeText(this, getString(R.string.album_already_exists), Toast.LENGTH_SHORT).show()
+                    return@setOnClickListener
+                }
                 dialog.dismiss()
                 executeCopy(null, name, selected)
             } else {
@@ -1047,6 +1148,10 @@ class MediaDetailActivity : BaseActivity() {
     ) {
         if (selected.isEmpty()) return
 
+        if (targetAlbum == null) {
+            com.developer.manali.galleryapp.data.AppPreferences.getInstance(this).addCreatedAlbum(targetAlbumName)
+        }
+
         lifecycleScope.launch(Dispatchers.IO) {
             val copiedCount = mediaRepository.copyMediaItems(
                 this@MediaDetailActivity,
@@ -1056,6 +1161,7 @@ class MediaDetailActivity : BaseActivity() {
             )
 
             withContext(Dispatchers.Main) {
+                sendBroadcast(android.content.Intent("com.developer.manali.galleryapp.ALBUMS_UPDATED"))
                 if (copiedCount > 0) {
                     Toast.makeText(
                         this@MediaDetailActivity,
@@ -1143,6 +1249,38 @@ class MediaDetailActivity : BaseActivity() {
 
         dialog.setContentView(dialogView)
         dialog.show()
+    }
+
+    private fun getRealFilePathFromUri(uri: Uri): String? {
+        try {
+            val projection = arrayOf(
+                MediaStore.MediaColumns.DATA,
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) MediaStore.MediaColumns.RELATIVE_PATH else MediaStore.MediaColumns.DATA,
+                MediaStore.MediaColumns.DISPLAY_NAME
+            )
+            contentResolver.query(uri, projection, null, null, null)?.use { cursor ->
+                if (cursor.moveToFirst()) {
+                    val dataIndex = cursor.getColumnIndex(MediaStore.MediaColumns.DATA)
+                    if (dataIndex != -1) {
+                        val data = cursor.getString(dataIndex)
+                        if (!data.isNullOrEmpty() && data.startsWith("/")) {
+                            return data
+                        }
+                    }
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                        val relIndex = cursor.getColumnIndex(MediaStore.MediaColumns.RELATIVE_PATH)
+                        val nameIndex = cursor.getColumnIndex(MediaStore.MediaColumns.DISPLAY_NAME)
+                        if (relIndex != -1 && nameIndex != -1) {
+                            val relPath = cursor.getString(relIndex) ?: ""
+                            val name = cursor.getString(nameIndex) ?: ""
+                            val base = Environment.getExternalStorageDirectory().absolutePath
+                            return "$base/$relPath$name".replace("//", "/")
+                        }
+                    }
+                }
+            }
+        } catch (_: Exception) {}
+        return null
     }
 
     private fun getRealFilePath(item: MediaItem): kotlin.String {

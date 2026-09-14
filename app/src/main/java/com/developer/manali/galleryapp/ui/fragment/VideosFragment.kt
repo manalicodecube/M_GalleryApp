@@ -44,19 +44,45 @@ class VideosFragment : Fragment() {
         loadVideos()
     }
 
-    override fun onResume() {
-        super.onResume()
-        context?.let {
-            val prefs = com.developer.manali.galleryapp.data.AppPreferences.getInstance(it)
-            if (!prefs.isVideosListView && currentSpanCount != prefs.gridColumns) {
-                updateGridColumns(prefs.gridColumns)
-            } else {
-                applyViewType()
+    private val mediaUpdateReceiver = object : android.content.BroadcastReceiver() {
+        override fun onReceive(context: android.content.Context?, intent: android.content.Intent?) {
+            val action = intent?.action
+            if (action == "com.developer.manali.galleryapp.MEDIA_UPDATED" ||
+                action == "com.developer.manali.galleryapp.ALBUMS_UPDATED") {
+                refreshData()
             }
         }
-        if (::videoAdapter.isInitialized) {
-            videoAdapter.notifyDataSetChanged()
+    }
+
+    override fun onResume() {
+        super.onResume()
+        try {
+            val filter = android.content.IntentFilter().apply {
+                addAction("com.developer.manali.galleryapp.MEDIA_UPDATED")
+                addAction("com.developer.manali.galleryapp.ALBUMS_UPDATED")
+            }
+            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
+                requireContext().registerReceiver(mediaUpdateReceiver, filter, android.content.Context.RECEIVER_NOT_EXPORTED)
+            } else {
+                requireContext().registerReceiver(mediaUpdateReceiver, filter)
+            }
+        } catch (_: Exception) {}
+
+        context?.let {
+            val prefs = com.developer.manali.galleryapp.data.AppPreferences.getInstance(it)
+            applyViewType(prefs.videosViewType)
+            if (!prefs.isVideosListView && currentSpanCount != prefs.gridColumns) {
+                updateGridColumns(prefs.gridColumns)
+            }
         }
+        loadVideos()
+    }
+
+    override fun onPause() {
+        super.onPause()
+        try {
+            requireContext().unregisterReceiver(mediaUpdateReceiver)
+        } catch (_: Exception) {}
     }
 
     var currentSpanCount: Int = 3
@@ -105,6 +131,8 @@ class VideosFragment : Fragment() {
             (activity as? com.developer.manali.galleryapp.MainActivity)?.onItemLongPressed(item)
         }
 
+        binding.rvVideos.setHasFixedSize(true)
+        binding.rvVideos.setItemViewCacheSize(25)
         binding.rvVideos.layoutManager = gridLayoutManager
         binding.rvVideos.adapter = videoAdapter
 
@@ -113,6 +141,7 @@ class VideosFragment : Fragment() {
             getSpanCount = { currentSpanCount },
             onSpanCountChanged = { newSpan ->
                 updateGridColumns(newSpan)
+                (activity as? com.developer.manali.galleryapp.MainActivity)?.onGridColumnsChanged(newSpan)
             }
         ).attachToRecyclerView(binding.rvVideos)
     }
@@ -199,15 +228,15 @@ class VideosFragment : Fragment() {
 
     fun updateGridColumns(newSpanCount: Int) {
         val span = newSpanCount.coerceIn(2, 7)
-        if (currentSpanCount == span) return
+        if (currentSpanCount == span && lastAppliedIsList == false) return
         currentSpanCount = span
-        var oldSpan = -1
         context?.let {
             val prefs = com.developer.manali.galleryapp.data.AppPreferences.getInstance(it)
-            oldSpan = prefs.gridColumns
             prefs.gridColumns = span
             prefs.photosGridColumns = span
             prefs.videosGridColumns = span
+            prefs.viewType = com.developer.manali.galleryapp.data.AppPreferences.VIEW_TYPE_GRID
+            prefs.photosViewType = com.developer.manali.galleryapp.data.AppPreferences.VIEW_TYPE_GRID
             prefs.videosViewType = com.developer.manali.galleryapp.data.AppPreferences.VIEW_TYPE_GRID
         }
         if (_binding != null && ::videoAdapter.isInitialized) {
@@ -238,12 +267,12 @@ class VideosFragment : Fragment() {
                 }
                 binding.rvVideos.layoutManager = gridLayoutManager
             }
+            videoAdapter.notifyDataSetChanged()
         }
-        if (oldSpan != span) {
-            context?.sendBroadcast(android.content.Intent("com.developer.manali.galleryapp.GRID_COLUMNS_CHANGED").apply {
-                putExtra("span_count", span)
-            })
-        }
+        context?.sendBroadcast(android.content.Intent("com.developer.manali.galleryapp.GRID_COLUMNS_CHANGED").apply {
+            setPackage(context?.packageName)
+            putExtra("span_count", span)
+        })
     }
 
     private fun setupSwipeRefresh() {
@@ -257,6 +286,7 @@ class VideosFragment : Fragment() {
 
     fun refreshData() {
         if (_binding != null) {
+            applyViewType()
             loadVideos()
         }
     }

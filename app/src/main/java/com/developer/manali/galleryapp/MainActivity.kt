@@ -11,6 +11,7 @@ import android.graphics.drawable.ColorDrawable
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
+import android.os.Environment
 import android.provider.MediaStore
 import android.view.Gravity
 import android.view.View
@@ -72,6 +73,15 @@ class MainActivity : BaseActivity() {
 
     private var isEnteringSelectionMode = false
 
+    fun onGridColumnsChanged(span: Int) {
+        currentPhotosFragment?.updateGridColumns(span)
+        currentVideosFragment?.updateGridColumns(span)
+        sendBroadcast(android.content.Intent("com.developer.manali.galleryapp.GRID_COLUMNS_CHANGED").apply {
+            setPackage(packageName)
+            putExtra("span_count", span)
+        })
+    }
+
     private val gridColumnsReceiver = object : android.content.BroadcastReceiver() {
         override fun onReceive(context: android.content.Context?, intent: android.content.Intent?) {
             if (intent?.action == "com.developer.manali.galleryapp.GRID_COLUMNS_CHANGED") {
@@ -91,6 +101,7 @@ class MainActivity : BaseActivity() {
     }
 
     private var pendingDirectoriesToCheck: List<String> = emptyList()
+    private var pendingAlbumsToDelete: List<com.developer.manali.galleryapp.data.AlbumItem> = emptyList()
     private var isDeletingAlbums: Boolean = false
 
     private fun deleteDirectoryRecursively(file: File) {
@@ -106,26 +117,44 @@ class MainActivity : BaseActivity() {
         ActivityResultContracts.StartIntentSenderForResult()
     ) { result ->
         if (result.resultCode == RESULT_OK) {
-            pendingDirectoriesToCheck.forEach { dirPath ->
-                try {
-                    val f = File(dirPath)
-                    if (f.exists() && f.isDirectory) {
-                        if (isDeletingAlbums) {
-                            deleteDirectoryRecursively(f)
-                        } else {
-                            if (f.list()?.isEmpty() == true) {
-                                f.delete()
+            val appPrefs = AppPreferences.getInstance(this)
+            val albumsDeleted = pendingAlbumsToDelete
+            if (isDeletingAlbums) {
+                albumsDeleted.forEach { album ->
+                    appPrefs.removeCreatedAlbum(album.bucketName)
+                }
+                currentAlbumsFragment?.removeAlbums(albumsDeleted)
+            }
+            val dirsToDelete = pendingDirectoriesToCheck
+            lifecycleScope.launch(Dispatchers.IO) {
+                dirsToDelete.forEach { dirPath ->
+                    try {
+                        val f = File(dirPath)
+                        if (f.exists() && f.isDirectory) {
+                            if (isDeletingAlbums) {
+                                deleteDirectoryRecursively(f)
+                            } else {
+                                if (f.list()?.isEmpty() == true) {
+                                    f.delete()
+                                }
                             }
                         }
-                    }
-                } catch (e: Exception) {}
+                    } catch (e: Exception) {}
+                }
+                withContext(Dispatchers.Main) {
+                    pendingDirectoriesToCheck = emptyList()
+                    pendingAlbumsToDelete = emptyList()
+                    isDeletingAlbums = false
+                    Toast.makeText(this@MainActivity, getString(R.string.items_permanently_deleted), Toast.LENGTH_SHORT).show()
+                    exitSelectionMode()
+                    com.developer.manali.galleryapp.data.MediaRepository.clearCache()
+                    refreshAllFragments()
+                }
             }
+        } else {
             pendingDirectoriesToCheck = emptyList()
+            pendingAlbumsToDelete = emptyList()
             isDeletingAlbums = false
-            Toast.makeText(this, getString(R.string.items_permanently_deleted), Toast.LENGTH_SHORT).show()
-            exitSelectionMode()
-            com.developer.manali.galleryapp.data.MediaRepository.clearCache()
-            refreshAllFragments()
         }
     }
 
@@ -194,6 +223,12 @@ class MainActivity : BaseActivity() {
 
     override fun onResume() {
         super.onResume()
+        com.developer.manali.galleryapp.data.MediaRepository.clearCache()
+        val appPrefs = AppPreferences.getInstance(this)
+        if (!appPrefs.isListView) {
+            currentPhotosFragment?.updateGridColumns(appPrefs.gridColumns)
+            currentVideosFragment?.updateGridColumns(appPrefs.gridColumns)
+        }
         loadMediaStats()
         refreshAllFragments()
         try {
@@ -531,9 +566,27 @@ class MainActivity : BaseActivity() {
         btnCreate.setOnClickListener {
             val name = etName.text.toString().trim()
             if (name.isNotEmpty()) {
+                if (com.developer.manali.galleryapp.data.MediaRepository.albumExists(this, name) ||
+                    currentAlbumsFragment?.isAlbumPresent(name) == true) {
+                    Toast.makeText(this, getString(R.string.album_already_exists), Toast.LENGTH_SHORT).show()
+                    return@setOnClickListener
+                }
                 binding.viewPagerMain.currentItem = 0
-                currentAlbumsFragment?.createNewAlbum(name, this)
-                dialog.dismiss()
+                val created = currentAlbumsFragment?.createNewAlbum(name, this) ?: run {
+                    try {
+                        val baseDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES)
+                        val newDir = File(baseDir, name)
+                        if (!newDir.exists()) newDir.mkdirs()
+                        AppPreferences.getInstance(this).addCreatedAlbum(name)
+                        com.developer.manali.galleryapp.data.MediaRepository.clearCache()
+                        sendBroadcast(Intent("com.developer.manali.galleryapp.ALBUMS_UPDATED"))
+                        Toast.makeText(this, getString(R.string.album_created, name), Toast.LENGTH_SHORT).show()
+                    } catch (_: Exception) {}
+                    true
+                }
+                if (created) {
+                    dialog.dismiss()
+                }
             } else {
                 Toast.makeText(this,
                     getString(R.string.please_enter_an_album_name), Toast.LENGTH_SHORT).show()
@@ -791,13 +844,7 @@ class MainActivity : BaseActivity() {
         val btnDone = dialogView.findViewById<View>(R.id.btnDoneSort)
 
         val appPrefs = AppPreferences.getInstance(this)
-        val currentTab = binding.viewPagerMain.currentItem
-
-        var selectedSort = when (currentTab) {
-            0 -> appPrefs.albumsSortBy
-            2 -> appPrefs.videosSortBy
-            else -> appPrefs.photosSortBy
-        }
+        var selectedSort = appPrefs.sortBy
 
         fun updateSelection(sortKey: String) {
             selectedSort = sortKey
@@ -814,35 +861,30 @@ class MainActivity : BaseActivity() {
         layoutNameAsc.setOnClickListener { updateSelection(AppPreferences.SORT_NAME_ASC) }
         layoutNameDesc.setOnClickListener { updateSelection(AppPreferences.SORT_NAME_DESC) }
 
+        rbNewest.setOnClickListener { updateSelection(AppPreferences.SORT_NEWEST) }
+        rbOldest.setOnClickListener { updateSelection(AppPreferences.SORT_OLDEST) }
+        rbNameAsc.setOnClickListener { updateSelection(AppPreferences.SORT_NAME_ASC) }
+        rbNameDesc.setOnClickListener { updateSelection(AppPreferences.SORT_NAME_DESC) }
+
         btnCancel.setOnClickListener {
             bottomSheetDialog.dismiss()
         }
 
         btnDone.setOnClickListener {
-            when (currentTab) {
-                0 -> {
-                    appPrefs.albumsSortBy = selectedSort
-                    currentAlbumsFragment?.applySort(selectedSort)
-                }
-                2 -> {
-                    appPrefs.videosSortBy = selectedSort
-                    currentVideosFragment?.refreshData()
-                }
-                else -> {
-                    appPrefs.photosSortBy = selectedSort
-                    currentPhotosFragment?.refreshData()
-                }
-            }
+            appPrefs.sortBy = selectedSort
+            appPrefs.albumsSortBy = selectedSort
+            appPrefs.photosSortBy = selectedSort
+            appPrefs.videosSortBy = selectedSort
+
+            currentAlbumsFragment?.applySort(selectedSort)
+            currentPhotosFragment?.refreshData()
+            currentVideosFragment?.refreshData()
 
             val sortLabel = when (selectedSort) {
                 AppPreferences.SORT_NEWEST -> getString(R.string.newest_on_top)
                 AppPreferences.SORT_OLDEST -> getString(R.string.oldest_on_top)
-                AppPreferences.SORT_NAME_ASC -> if (currentTab == 0) getString(R.string.album_name_a_z)else getString(
-                    R.string.name_a_z
-                )
-                AppPreferences.SORT_NAME_DESC -> if (currentTab == 0) getString(R.string.album_name_z_a) else getString(
-                    R.string.name_z_a
-                )
+                AppPreferences.SORT_NAME_ASC -> getString(R.string.name_a_z)
+                AppPreferences.SORT_NAME_DESC -> getString(R.string.name_z_a)
                 else -> getString(R.string.sorted)
             }
             Toast.makeText(this, getString(R.string.applied, sortLabel), Toast.LENGTH_SHORT).show()
@@ -1072,7 +1114,7 @@ class MainActivity : BaseActivity() {
 
         val totalCount = currentAlbumsFragment?.getAllMediaItems()?.size ?: 0
         if (count > 0 && totalCount > 0 && count == totalCount) {
-            binding.btnSelectAll.setImageResource(R.drawable.ic_select_checked)
+            binding.btnSelectAll.setImageResource(R.drawable.select)
             binding.btnSelectAll.imageTintList = null
         } else {
             binding.btnSelectAll.setImageResource(R.drawable.select)
@@ -1121,7 +1163,7 @@ class MainActivity : BaseActivity() {
         }
 
         if (count > 0 && totalCount > 0 && count == totalCount) {
-            binding.btnSelectAll.setImageResource(R.drawable.ic_select_checked)
+            binding.btnSelectAll.setImageResource(R.drawable.select)
             binding.btnSelectAll.imageTintList = null
         } else {
             binding.btnSelectAll.setImageResource(R.drawable.select)
@@ -1281,16 +1323,30 @@ class MainActivity : BaseActivity() {
     private fun deleteSelectedMedia() {
         lifecycleScope.launch {
             val currentTab = binding.viewPagerMain.currentItem
-            val selectedMedia = getCurrentlySelectedItemsAsync()
             val selectedAlbums = if (currentTab == 0) currentAlbumsFragment?.getSelectedItems() ?: emptyList() else emptyList()
+            val selectedMedia = if (currentTab == 0) {
+                mediaRepository.getAllMediaInAlbums(this@MainActivity, selectedAlbums)
+            } else {
+                getCurrentlySelectedItemsAsync()
+            }
 
             val resolvedDirs = mutableListOf<String>()
             if (currentTab == 0) {
                 selectedAlbums.forEach { album ->
-                    val dirFile = mediaRepository.getAlbumDirectory(this@MainActivity, album.bucketId, album.bucketName)
-                    if (dirFile.exists() && dirFile.isDirectory) {
-                        resolvedDirs.add(dirFile.absolutePath)
-                    }
+                    try {
+                        val dirFile = mediaRepository.getAlbumDirectory(this@MainActivity, album.bucketId, album.bucketName)
+                        if (dirFile.exists() && dirFile.isDirectory) {
+                            resolvedDirs.add(dirFile.absolutePath)
+                        }
+                        val picDir = File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES), album.bucketName)
+                        if (picDir.exists() && picDir.isDirectory && !resolvedDirs.contains(picDir.absolutePath)) {
+                            resolvedDirs.add(picDir.absolutePath)
+                        }
+                        val dcimDir = File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DCIM), album.bucketName)
+                        if (dcimDir.exists() && dcimDir.isDirectory && !resolvedDirs.contains(dcimDir.absolutePath)) {
+                            resolvedDirs.add(dcimDir.absolutePath)
+                        }
+                    } catch (_: Exception) {}
                 }
             } else {
                 selectedMedia.mapNotNull { 
@@ -1300,7 +1356,7 @@ class MainActivity : BaseActivity() {
 
             withContext(Dispatchers.Main) {
                 if (selectedMedia.isEmpty() && selectedAlbums.isEmpty()) {
-                    Toast.makeText(this@MainActivity,getString(R.string.please_select_at_least_1_item_to_delete), Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this@MainActivity, getString(R.string.please_select_at_least_1_item_to_delete), Toast.LENGTH_SHORT).show()
                     return@withContext
                 }
 
@@ -1309,72 +1365,150 @@ class MainActivity : BaseActivity() {
                     .setView(dialogView)
                     .create()
 
-        dialog.window?.setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
+                dialog.window?.setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
 
-        val tvTitle = dialogView.findViewById<TextView>(R.id.tvDeleteDialogTitle)
-        val tvSubtitle = dialogView.findViewById<TextView>(R.id.tvDeleteDialogSubtitle)
-        val tvName = dialogView.findViewById<TextView>(R.id.tvDeleteVideoName)
-        val tvDetails = dialogView.findViewById<TextView>(R.id.tvDeleteVideoDetails)
-        val ivIcon = dialogView.findViewById<ImageView>(R.id.ivDeleteMediaIcon)
-        val btnCancel = dialogView.findViewById<View>(R.id.btnCancelDelete)
-        val btnConfirm = dialogView.findViewById<View>(R.id.btnConfirmDelete)
+                val tvTitle = dialogView.findViewById<TextView>(R.id.tvDeleteDialogTitle)
+                val tvSubtitle = dialogView.findViewById<TextView>(R.id.tvDeleteDialogSubtitle)
+                val tvName = dialogView.findViewById<TextView>(R.id.tvDeleteVideoName)
+                val tvDetails = dialogView.findViewById<TextView>(R.id.tvDeleteVideoDetails)
+                val ivIcon = dialogView.findViewById<ImageView>(R.id.ivDeleteMediaIcon)
+                val btnCancel = dialogView.findViewById<View>(R.id.btnCancelDelete)
+                val btnConfirm = dialogView.findViewById<View>(R.id.btnConfirmDelete)
 
-        val isSingle = if (currentTab == 0) selectedAlbums.size == 1 else selectedMedia.size == 1
-        tvTitle.text = if (currentTab == 0) {
-            if (isSingle) getString(R.string.delete_album) else getString(
-                R.string.delete_albums,
-                selectedAlbums.size
-            )
-        } else if (isSingle) {
-            if (selectedMedia.isNotEmpty() && selectedMedia[0].isVideo)  getString(R.string.delete_video) else getString(R.string.delete_photo)
-        } else {
-            getString(R.string.delete_items, selectedMedia.size)
-        }
-        tvSubtitle.text = getString(R.string.selected_item_s_will_be_permanently_deleted_from_storage)
+                val isSingle = if (currentTab == 0) selectedAlbums.size == 1 else selectedMedia.size == 1
+                tvTitle.text = if (currentTab == 0) {
+                    if (isSingle) getString(R.string.delete_album) else getString(
+                        R.string.delete_albums,
+                        selectedAlbums.size
+                    )
+                } else if (isSingle) {
+                    if (selectedMedia.isNotEmpty() && selectedMedia[0].isVideo) getString(R.string.delete_video) else getString(R.string.delete_photo)
+                } else {
+                    getString(R.string.delete_items, selectedMedia.size)
+                }
+                tvSubtitle.text = getString(R.string.selected_item_s_will_be_permanently_deleted_from_storage)
 
-        if (currentTab == 0) {
-            if (isSingle) {
-                ivIcon.setImageResource(R.drawable.folder)
-                tvName.text = selectedAlbums[0].bucketName
-                tvDetails.text = getString(R.string.items,selectedAlbums[0].itemCount)
-            } else {
-                ivIcon.setImageResource(R.drawable.delete)
-                tvName.text = getString(R.string.albums_selected, selectedAlbums.size)
-                tvDetails.text = getString(R.string.total_items, selectedMedia.size)
-            }
-        } else {
-            if (isSingle && selectedMedia.isNotEmpty()) {
-                val item = selectedMedia[0]
-                ivIcon.setImageResource(if (item.isVideo) R.drawable.video else R.drawable.photo)
-                tvName.text = item.displayName
-                val sizeStr = MediaRepository.formatFileSize(item.size)
-                val durStr = if (item.isVideo) MediaRepository.formatDuration(item.duration) else ""
-                tvDetails.text = if (durStr.isNotEmpty() && durStr != "0:00") "$sizeStr • $durStr" else sizeStr
-            } else {
-                ivIcon.setImageResource(R.drawable.delete)
-                tvName.text = getString(R.string.items_selected,selectedMedia.size)
-                val totalSize = selectedMedia.sumOf { it.size }
-                tvDetails.text = MediaRepository.formatFileSize(totalSize)
-            }
-        }
-
-        btnCancel.setOnClickListener {
-            dialog.dismiss()
-        }
-
-        btnConfirm.setOnClickListener {
-            dialog.dismiss()
-            isDeletingAlbums = (currentTab == 0)
-            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.R) {
-                try {
-                    val uris = selectedMedia.map { it.uri }
-                    if (uris.isNotEmpty()) {
-                        pendingDirectoriesToCheck = resolvedDirs
-                        val pendingIntent = android.provider.MediaStore.createDeleteRequest(contentResolver, uris)
-                        val intentSenderRequest = androidx.activity.result.IntentSenderRequest.Builder(pendingIntent.intentSender).build()
-                        deleteLauncher.launch(intentSenderRequest)
+                if (currentTab == 0) {
+                    if (isSingle) {
+                        ivIcon.setImageResource(R.drawable.folder)
+                        tvName.text = selectedAlbums[0].bucketName
+                        tvDetails.text = getString(R.string.items, selectedAlbums[0].itemCount)
                     } else {
+                        ivIcon.setImageResource(R.drawable.delete)
+                        tvName.text = getString(R.string.albums_selected, selectedAlbums.size)
+                        tvDetails.text = getString(R.string.total_items, selectedMedia.size)
+                    }
+                } else {
+                    if (isSingle && selectedMedia.isNotEmpty()) {
+                        val item = selectedMedia[0]
+                        ivIcon.setImageResource(if (item.isVideo) R.drawable.video else R.drawable.photo)
+                        tvName.text = item.displayName
+                        val sizeStr = MediaRepository.formatFileSize(item.size)
+                        val durStr = if (item.isVideo) MediaRepository.formatDuration(item.duration) else ""
+                        tvDetails.text = if (durStr.isNotEmpty() && durStr != "0:00") "$sizeStr • $durStr" else sizeStr
+                    } else {
+                        ivIcon.setImageResource(R.drawable.delete)
+                        tvName.text = getString(R.string.items_selected, selectedMedia.size)
+                        val totalSize = selectedMedia.sumOf { it.size }
+                        tvDetails.text = MediaRepository.formatFileSize(totalSize)
+                    }
+                }
+
+                btnCancel.setOnClickListener {
+                    dialog.dismiss()
+                }
+
+                btnConfirm.setOnClickListener {
+                    dialog.dismiss()
+                    isDeletingAlbums = (currentTab == 0)
+                    pendingAlbumsToDelete = selectedAlbums
+                    pendingDirectoriesToCheck = resolvedDirs
+
+                    if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.R) {
+                        try {
+                            val uris = selectedMedia.map { it.uri }
+                            if (uris.isNotEmpty()) {
+                                val pendingIntent = android.provider.MediaStore.createDeleteRequest(contentResolver, uris)
+                                val intentSenderRequest = androidx.activity.result.IntentSenderRequest.Builder(pendingIntent.intentSender).build()
+                                deleteLauncher.launch(intentSenderRequest)
+                            } else {
+                                if (isDeletingAlbums) {
+                                    val appPrefs = AppPreferences.getInstance(this@MainActivity)
+                                    pendingAlbumsToDelete.forEach { album ->
+                                        appPrefs.removeCreatedAlbum(album.bucketName)
+                                    }
+                                    currentAlbumsFragment?.removeAlbums(pendingAlbumsToDelete)
+                                }
+                                lifecycleScope.launch(Dispatchers.IO) {
+                                    resolvedDirs.forEach { dirPath ->
+                                        try {
+                                            val f = File(dirPath)
+                                            if (f.exists() && f.isDirectory) {
+                                                deleteDirectoryRecursively(f)
+                                            }
+                                        } catch (e: Exception) {}
+                                    }
+                                    withContext(Dispatchers.Main) {
+                                        pendingDirectoriesToCheck = emptyList()
+                                        pendingAlbumsToDelete = emptyList()
+                                        isDeletingAlbums = false
+                                        Toast.makeText(this@MainActivity, getString(R.string.items_permanently_deleted), Toast.LENGTH_SHORT).show()
+                                        exitSelectionMode()
+                                        com.developer.manali.galleryapp.data.MediaRepository.clearCache()
+                                        refreshAllFragments()
+                                    }
+                                }
+                            }
+                        } catch (e: Exception) {
+                            Toast.makeText(this@MainActivity, getString(R.string.failed_to_initiate_deletion), Toast.LENGTH_SHORT).show()
+                        }
+                    } else {
+                        if (isDeletingAlbums) {
+                            val appPrefs = AppPreferences.getInstance(this@MainActivity)
+                            pendingAlbumsToDelete.forEach { album ->
+                                appPrefs.removeCreatedAlbum(album.bucketName)
+                            }
+                            currentAlbumsFragment?.removeAlbums(pendingAlbumsToDelete)
+                        }
                         lifecycleScope.launch(Dispatchers.IO) {
+                            var deletedCount = 0
+                            val deletedPaths = mutableListOf<String>()
+
+                            for (item in selectedMedia) {
+                                try {
+                                    val rows = contentResolver.delete(item.uri, null, null)
+                                    if (rows > 0) {
+                                        deletedCount++
+                                    } else if (item.path.isNotEmpty()) {
+                                        val f = File(item.path)
+                                        if (f.exists() && f.delete()) deletedCount++
+                                    }
+                                    if (item.path.isNotEmpty()) {
+                                        deletedPaths.add(item.path)
+                                        try {
+                                            val parent = File(item.path).parentFile
+                                            if (parent != null && parent.exists() && parent.isDirectory && parent.list()?.isEmpty() == true) {
+                                                parent.delete()
+                                            }
+                                        } catch (e: Exception) {}
+                                    }
+                                } catch (e: Exception) {
+                                    if (item.path.isNotEmpty()) {
+                                        try {
+                                            val f = File(item.path)
+                                            if (f.exists() && f.delete()) {
+                                                deletedCount++
+                                                deletedPaths.add(item.path)
+                                                val parent = f.parentFile
+                                                if (parent != null && parent.exists() && parent.isDirectory && parent.list()?.isEmpty() == true) {
+                                                    parent.delete()
+                                                }
+                                            }
+                                        } catch (_: Exception) {}
+                                    }
+                                }
+                            }
+                            
                             resolvedDirs.forEach { dirPath ->
                                 try {
                                     val f = File(dirPath)
@@ -1383,86 +1517,29 @@ class MainActivity : BaseActivity() {
                                     }
                                 } catch (e: Exception) {}
                             }
+
+                            if (deletedPaths.isNotEmpty()) {
+                                try {
+                                    android.media.MediaScannerConnection.scanFile(
+                                        this@MainActivity,
+                                        deletedPaths.toTypedArray(),
+                                        null
+                                    ) { _, _ -> }
+                                } catch (_: Exception) {}
+                            }
+
                             withContext(Dispatchers.Main) {
-                                Toast.makeText(this@MainActivity, getString(R.string.items_permanently_deleted), Toast.LENGTH_SHORT).show()
+                                pendingDirectoriesToCheck = emptyList()
+                                pendingAlbumsToDelete = emptyList()
+                                isDeletingAlbums = false
+                                com.developer.manali.galleryapp.data.MediaRepository.clearCache()
+                                Toast.makeText(this@MainActivity, getString(R.string.permanently_deleted_items, deletedCount), Toast.LENGTH_SHORT).show()
                                 exitSelectionMode()
                                 refreshAllFragments()
                             }
                         }
                     }
-                } catch (e: Exception) {
-                    Toast.makeText(this@MainActivity, getString(R.string.failed_to_initiate_deletion), Toast.LENGTH_SHORT).show()
                 }
-            } else {
-                lifecycleScope.launch(Dispatchers.IO) {
-                    var deletedCount = 0
-                    val deletedPaths = mutableListOf<String>()
-
-                    for (item in selectedMedia) {
-                        try {
-                            val rows = contentResolver.delete(item.uri, null, null)
-                            if (rows > 0) {
-                                deletedCount++
-                            } else if (item.path.isNotEmpty()) {
-                                val f = File(item.path)
-                                if (f.exists() && f.delete()) deletedCount++
-                            }
-                            if (item.path.isNotEmpty()) {
-                                deletedPaths.add(item.path)
-                                try {
-                                    val parent = File(item.path).parentFile
-                                    if (parent != null && parent.exists() && parent.isDirectory && parent.list()?.isEmpty() == true) {
-                                        parent.delete()
-                                    }
-                                } catch (e: Exception) {}
-                            }
-                        } catch (e: Exception) {
-                            if (item.path.isNotEmpty()) {
-                                try {
-                                    val f = File(item.path)
-                                    if (f.exists() && f.delete()) {
-                                        deletedCount++
-                                        deletedPaths.add(item.path)
-                                        val parent = f.parentFile
-                                        if (parent != null && parent.exists() && parent.isDirectory && parent.list()?.isEmpty() == true) {
-                                            parent.delete()
-                                        }
-                                    }
-                                } catch (_: Exception) {}
-                            }
-                        }
-                    }
-                    
-                    if (currentTab == 0) {
-                        resolvedDirs.forEach { dirPath ->
-                            try {
-                                val f = File(dirPath)
-                                if (f.exists() && f.isDirectory) {
-                                    deleteDirectoryRecursively(f)
-                                }
-                            } catch (e: Exception) {}
-                        }
-                    }
-
-                    if (deletedPaths.isNotEmpty()) {
-                        try {
-                            android.media.MediaScannerConnection.scanFile(
-                                this@MainActivity,
-                                deletedPaths.toTypedArray(),
-                                null
-                            ) { _, _ -> }
-                        } catch (_: Exception) {}
-                    }
-
-                    withContext(Dispatchers.Main) {
-                        com.developer.manali.galleryapp.data.MediaRepository.clearCache()
-                        Toast.makeText(this@MainActivity, getString(R.string.permanently_deleted_items, deletedCount), Toast.LENGTH_SHORT).show()
-                        exitSelectionMode()
-                        refreshAllFragments()
-                    }
-                }
-            }
-        }
 
                 dialog.show()
             }
@@ -1541,6 +1618,11 @@ class MainActivity : BaseActivity() {
         btnCreate.setOnClickListener {
             val name = etName.text.toString().trim()
             if (name.isNotEmpty()) {
+                if (com.developer.manali.galleryapp.data.MediaRepository.albumExists(this, name) ||
+                    currentAlbumsFragment?.isAlbumPresent(name) == true) {
+                    Toast.makeText(this, getString(R.string.album_already_exists), Toast.LENGTH_SHORT).show()
+                    return@setOnClickListener
+                }
                 dialog.dismiss()
                 executeMove(null, name, selected)
             } else {
@@ -1616,6 +1698,11 @@ class MainActivity : BaseActivity() {
     private fun refreshAllFragments() {
         loadMediaStats()
         sendBroadcast(android.content.Intent("com.developer.manali.galleryapp.ALBUMS_UPDATED"))
+        val appPrefs = AppPreferences.getInstance(this)
+        currentAlbumsFragment?.applyViewType(appPrefs.albumsViewType)
+        currentPhotosFragment?.applyViewType(appPrefs.photosViewType)
+        currentVideosFragment?.applyViewType(appPrefs.videosViewType)
+        currentAlbumsFragment?.applySort(appPrefs.albumsSortBy)
         currentAlbumsFragment?.refreshData()
         currentPhotosFragment?.refreshData()
         currentVideosFragment?.refreshData()

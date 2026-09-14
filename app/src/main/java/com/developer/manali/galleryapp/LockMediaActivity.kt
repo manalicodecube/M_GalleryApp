@@ -61,7 +61,95 @@ class LockMediaActivity : BaseActivity() {
 
     override fun onResume() {
         super.onResume()
+        val prefs = AppPreferences.getInstance(this)
+        val isList = prefs.isListView
+        val span = if (isList) 1 else prefs.gridColumns
+        if (isList != lastAppliedIsList || currentSpanCount != span) {
+            currentSpanCount = span
+            lastAppliedIsList = isList
+            binding.rvLockedAlbums.layoutManager = GridLayoutManager(this, span)
+            binding.rvLockedMedia.layoutManager = GridLayoutManager(this, span)
+            albumAdapter.setListView(isList)
+            mediaAdapter.setListView(isList)
+            albumAdapter.notifyDataSetChanged()
+            mediaAdapter.notifyDataSetChanged()
+        }
         loadLockedData()
+        try {
+            val filter = android.content.IntentFilter("com.developer.manali.galleryapp.GRID_COLUMNS_CHANGED")
+            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
+                registerReceiver(gridColumnsReceiver, filter, RECEIVER_NOT_EXPORTED)
+            } else {
+                registerReceiver(gridColumnsReceiver, filter)
+            }
+        } catch (_: Exception) {}
+    }
+
+    override fun onPause() {
+        super.onPause()
+        try {
+            unregisterReceiver(gridColumnsReceiver)
+        } catch (_: Exception) {}
+    }
+
+    private var currentSpanCount: Int = 3
+    private var lastAppliedIsList: Boolean? = null
+
+    private val gridColumnsReceiver = object : android.content.BroadcastReceiver() {
+        override fun onReceive(context: android.content.Context?, intent: android.content.Intent?) {
+            if (intent?.action == "com.developer.manali.galleryapp.GRID_COLUMNS_CHANGED") {
+                val span = intent.getIntExtra("span_count", -1)
+                if (span in 2..7) {
+                    updateGridColumns(span)
+                }
+            }
+        }
+    }
+
+    fun updateGridColumns(newSpanCount: Int) {
+        val span = newSpanCount.coerceIn(2, 7)
+        if (currentSpanCount == span && lastAppliedIsList == false) return
+        currentSpanCount = span
+        val prefs = AppPreferences.getInstance(this)
+        prefs.gridColumns = span
+        prefs.photosGridColumns = span
+        prefs.videosGridColumns = span
+        prefs.viewType = AppPreferences.VIEW_TYPE_GRID
+        prefs.albumsViewType = AppPreferences.VIEW_TYPE_GRID
+        prefs.photosViewType = AppPreferences.VIEW_TYPE_GRID
+        prefs.videosViewType = AppPreferences.VIEW_TYPE_GRID
+        lastAppliedIsList = false
+
+        val transition = androidx.transition.TransitionSet().apply {
+            ordering = androidx.transition.TransitionSet.ORDERING_TOGETHER
+            addTransition(androidx.transition.ChangeBounds())
+            duration = 250
+        }
+        androidx.transition.TransitionManager.beginDelayedTransition(binding.scrollViewLockMedia, transition)
+
+        val existingAlbumsManager = binding.rvLockedAlbums.layoutManager as? GridLayoutManager
+        if (existingAlbumsManager != null) {
+            existingAlbumsManager.spanCount = span
+        } else {
+            binding.rvLockedAlbums.layoutManager = GridLayoutManager(this, span)
+        }
+
+        val existingMediaManager = binding.rvLockedMedia.layoutManager as? GridLayoutManager
+        if (existingMediaManager != null) {
+            existingMediaManager.spanCount = span
+        } else {
+            binding.rvLockedMedia.layoutManager = GridLayoutManager(this, span)
+        }
+
+        albumAdapter.setListView(false)
+        mediaAdapter.setListView(false)
+        albumAdapter.notifyDataSetChanged()
+        mediaAdapter.notifyDataSetChanged()
+
+        sendBroadcast(android.content.Intent("com.developer.manali.galleryapp.GRID_COLUMNS_CHANGED").apply {
+            setPackage(packageName)
+            putExtra("span_count", span)
+        })
     }
 
     private val lockedMediaItems = ArrayList<MediaItem>()
@@ -74,7 +162,7 @@ class LockMediaActivity : BaseActivity() {
                 val appPrefs = AppPreferences.getInstance(this)
                 val set = appPrefs.getLockedMediaIds()
                 set.removeAll(selectedMediaIds.toSet())
-                appPrefs.setLockedMedia(selectedMediaIds, false) 
+                appPrefs.setLockedMedia(selectedMediaIds, false)
             }
             exitSelectionMode()
             loadLockedData()
@@ -83,9 +171,12 @@ class LockMediaActivity : BaseActivity() {
 
     private fun setupRecyclerViews() {
         val prefs = AppPreferences.getInstance(this)
+        val isList = prefs.isListView
+        currentSpanCount = if (isList) 1 else prefs.gridColumns
+        lastAppliedIsList = isList
 
         binding.rvLockedAlbums.layoutManager =
-            GridLayoutManager(this, if (prefs.isPhotosListView) 1 else prefs.gridColumns)
+            GridLayoutManager(this, currentSpanCount)
         albumAdapter = AlbumAdapter(
             onAlbumClick = { album ->
                 if (!isSelectionMode) {
@@ -109,11 +200,15 @@ class LockMediaActivity : BaseActivity() {
                 }
             }
         )
-        albumAdapter.setListView(prefs.isPhotosListView)
+        albumAdapter.setListView(isList)
+        binding.rvLockedAlbums.setHasFixedSize(true)
+        binding.rvLockedAlbums.setItemViewCacheSize(25)
         binding.rvLockedAlbums.adapter = albumAdapter
 
+        binding.rvLockedMedia.setHasFixedSize(true)
+        binding.rvLockedMedia.setItemViewCacheSize(25)
         binding.rvLockedMedia.layoutManager =
-            GridLayoutManager(this, if (prefs.isPhotosListView) 1 else prefs.photosGridColumns)
+            GridLayoutManager(this, currentSpanCount)
         mediaAdapter = PhotoGridAdapter(
             onItemClick = { mediaItem ->
                 if (!isSelectionMode) {
@@ -137,7 +232,7 @@ class LockMediaActivity : BaseActivity() {
             },
             onSelectClick = { }
         )
-        mediaAdapter.setListView(prefs.isPhotosListView)
+        mediaAdapter.setListView(isList)
         mediaAdapter.setOnItemLongClickListener { item ->
             if (!isSelectionMode) {
                 enterSelectionMode(initialMedia = item)
@@ -146,6 +241,22 @@ class LockMediaActivity : BaseActivity() {
         }
         mediaAdapter.setOnSelectionChangedListener { _, _ -> onSelectionUpdated() }
         binding.rvLockedMedia.adapter = mediaAdapter
+
+        com.developer.manali.galleryapp.util.PinchZoomGridHelper(
+            context = this,
+            getSpanCount = { currentSpanCount },
+            onSpanCountChanged = { newSpan ->
+                updateGridColumns(newSpan)
+            }
+        ).attachToRecyclerView(binding.rvLockedMedia)
+
+        com.developer.manali.galleryapp.util.PinchZoomGridHelper(
+            context = this,
+            getSpanCount = { currentSpanCount },
+            onSpanCountChanged = { newSpan ->
+                updateGridColumns(newSpan)
+            }
+        ).attachToRecyclerView(binding.rvLockedAlbums)
     }
 
     private fun setupListeners() {
@@ -208,7 +319,7 @@ class LockMediaActivity : BaseActivity() {
             exitSelectionMode()
             loadLockedData()
         }
-        
+
         binding.actionSelectShare.setOnClickListener {
             shareSelectedMedia()
         }
@@ -285,7 +396,7 @@ class LockMediaActivity : BaseActivity() {
             binding.btnSelectAllLockMedia.visibility = View.VISIBLE
             binding.btnMenuLockMedia.visibility = View.GONE
             binding.selectionBottomBarLockMedia.visibility = View.VISIBLE
-            
+
             albumAdapter.enterSelectionMode(initialAlbum)
             mediaAdapter.enterSelectionMode(initialMedia)
         } finally {
@@ -296,13 +407,13 @@ class LockMediaActivity : BaseActivity() {
     private fun exitSelectionMode() {
         if (!isSelectionMode) return
         isSelectionMode = false
-        
+
         binding.btnBackLockMedia.setImageResource(R.drawable.arrowback)
         binding.btnSelectAllLockMedia.visibility = View.GONE
         binding.btnMenuLockMedia.visibility = View.VISIBLE
         binding.tvLockMediaTitle.text = getString(R.string.vault)
         binding.selectionBottomBarLockMedia.visibility = View.GONE
-        
+
         albumAdapter.exitSelectionMode()
         mediaAdapter.exitSelectionMode()
     }
@@ -310,16 +421,16 @@ class LockMediaActivity : BaseActivity() {
     private fun updateSelectionHeader() {
         if (!isSelectionMode) return
         val count = albumAdapter.getSelectedItems().size + mediaAdapter.getSelectedItems().size
-        
+
         if (count == 0 && (albumAdapter.getAllAlbums().isNotEmpty() || mediaAdapter.getAllMediaItems().isNotEmpty())) {
 
         }
-        
+
         val titleText = if (count == 0) getString(R.string._0_selected) else getString(R.string.selected, count)
         binding.tvLockMediaTitle.text = titleText
         binding.btnBackLockMedia.setImageResource(R.drawable.ic_close)
         binding.btnSelectAllLockMedia.visibility = View.VISIBLE
-        
+
         val alpha = if (count > 0) 1.0f else 0.4f
         binding.actionSelectUnlock.alpha = alpha
         binding.actionSelectUnlock.isEnabled = count > 0
@@ -348,7 +459,7 @@ class LockMediaActivity : BaseActivity() {
         val layoutColumns = dialogView.findViewById<View>(R.id.layoutMenuColumns)
         val layoutViewType = dialogView.findViewById<View>(R.id.layoutMenuViewType)
         val layoutSortBy = dialogView.findViewById<View>(R.id.layoutMenuSortBy)
-        
+
         layoutSortBy.visibility = View.GONE
 
         layoutSelect.setOnClickListener {
@@ -356,12 +467,12 @@ class LockMediaActivity : BaseActivity() {
             enterSelectionMode()
             updateSelectionHeader()
         }
-        
+
         layoutColumns.setOnClickListener {
             dialog.dismiss()
             showColumnsDialog()
         }
-        
+
         layoutViewType.setOnClickListener {
             dialog.dismiss()
             showViewTypeDialog()
@@ -429,18 +540,7 @@ class LockMediaActivity : BaseActivity() {
                 else -> currentSpan
             }
 
-            appPrefs.gridColumns = selectedCols
-            appPrefs.photosGridColumns = selectedCols
-            appPrefs.viewType = AppPreferences.VIEW_TYPE_GRID
-            appPrefs.albumsViewType = AppPreferences.VIEW_TYPE_GRID
-            appPrefs.photosViewType = AppPreferences.VIEW_TYPE_GRID
-
-            binding.rvLockedAlbums.layoutManager = androidx.recyclerview.widget.GridLayoutManager(this, selectedCols)
-            binding.rvLockedMedia.layoutManager = androidx.recyclerview.widget.GridLayoutManager(this, selectedCols)
-            albumAdapter.setListView(false)
-            mediaAdapter.setListView(false)
-            albumAdapter.notifyDataSetChanged()
-            mediaAdapter.notifyDataSetChanged()
+            updateGridColumns(selectedCols)
 
             Toast.makeText(this, getString(R.string.applied, "$selectedCols Columns"), Toast.LENGTH_SHORT).show()
             bottomSheetDialog.dismiss()
@@ -460,7 +560,7 @@ class LockMediaActivity : BaseActivity() {
         val layoutOptionList = dialogView.findViewById<View>(R.id.layoutOptionList)
 
         val appPrefs = AppPreferences.getInstance(this)
-        var selectedType = appPrefs.isPhotosListView
+        var selectedType = appPrefs.isListView
 
         val rgViewType = dialogView.findViewById<android.widget.RadioGroup>(R.id.rgViewType)
 
@@ -475,15 +575,28 @@ class LockMediaActivity : BaseActivity() {
         fun applyType(isList: Boolean) {
             selectedType = isList
             val typeStr = if (isList) AppPreferences.VIEW_TYPE_LIST else AppPreferences.VIEW_TYPE_GRID
-            appPrefs.albumsViewType = typeStr
+            appPrefs.viewType = typeStr
             appPrefs.photosViewType = typeStr
-            
+            appPrefs.videosViewType = typeStr
+            appPrefs.albumsViewType = typeStr
+
             val span = if (isList) 1 else appPrefs.gridColumns
+            currentSpanCount = span
+            lastAppliedIsList = isList
             binding.rvLockedAlbums.layoutManager = androidx.recyclerview.widget.GridLayoutManager(this, span)
             binding.rvLockedMedia.layoutManager = androidx.recyclerview.widget.GridLayoutManager(this, span)
-            
+
             albumAdapter.setListView(isList)
             mediaAdapter.setListView(isList)
+            albumAdapter.notifyDataSetChanged()
+            mediaAdapter.notifyDataSetChanged()
+
+            if (!isList) {
+                sendBroadcast(android.content.Intent("com.developer.manali.galleryapp.GRID_COLUMNS_CHANGED").apply {
+                    setPackage(packageName)
+                    putExtra("span_count", span)
+                })
+            }
 
             val displayLabel = if (isList) getString(R.string.list_view) else getString(R.string.grid_view)
             Toast.makeText(this, getString(R.string.applied, displayLabel), Toast.LENGTH_SHORT).show()
@@ -552,7 +665,7 @@ class LockMediaActivity : BaseActivity() {
 
     private fun deleteSelectedMedia() {
         val selectedMedia = mediaAdapter.getSelectedItems()
-        
+
         if (selectedMedia.isEmpty()) {
             Toast.makeText(this, getString(R.string.please_select_at_least_1_item_to_delete), Toast.LENGTH_SHORT).show()
             return
@@ -574,13 +687,13 @@ class LockMediaActivity : BaseActivity() {
         val btnConfirm = dialogView.findViewById<View>(R.id.btnConfirmDelete)
 
         val isSingle = selectedMedia.size == 1
-        
+
         tvTitle?.text = if (isSingle) {
             if (selectedMedia[0].isVideo) getString(R.string.delete_video) else getString(R.string.delete_photo)
         } else {
             getString(R.string.delete_items, selectedMedia.size)
         }
-        
+
         tvSubtitle?.text = getString(R.string.selected_item_s_will_be_permanently_deleted_from_storage)
 
         if (isSingle) {

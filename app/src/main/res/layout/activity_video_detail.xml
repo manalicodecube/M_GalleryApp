@@ -59,8 +59,7 @@
             <ImageView
                 android:id="@+id/btnBackVideoDetail"
                 android:layout_width="40dp"
-                android:layout_height="40dp"
-                android:background="@drawable/bg_player_control_circle"
+                android:layout_height="wrap_content"
                 android:contentDescription="Back"
                 android:padding="9dp"
                 android:src="@drawable/arrowback"

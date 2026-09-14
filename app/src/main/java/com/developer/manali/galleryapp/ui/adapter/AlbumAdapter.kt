@@ -37,6 +37,13 @@ class AlbumAdapter(
         notifyDataSetChanged()
     }
 
+    fun removeAlbums(albumsToRemove: List<AlbumItem>) {
+        val ids = albumsToRemove.map { it.bucketId }.toSet()
+        val names = albumsToRemove.map { it.bucketName.lowercase() }.toSet()
+        albums.removeAll { ids.contains(it.bucketId) || names.contains(it.bucketName.lowercase()) }
+        notifyDataSetChanged()
+    }
+
     fun setListView(isList: Boolean) {
         if (isListView != isList) {
             isListView = isList
@@ -143,6 +150,8 @@ class AlbumAdapter(
                 }
 
                 if (album.coverUri != null) {
+                    binding.ivAlbumCover.setPadding(0, 0, 0, 0)
+                    binding.ivAlbumCover.scaleType = android.widget.ImageView.ScaleType.CENTER_CROP
                     Glide.with(binding.ivAlbumCover.context)
                         .load(album.coverUri)
                         .override(300, 300)
@@ -150,7 +159,11 @@ class AlbumAdapter(
                         .centerCrop()
                         .into(binding.ivAlbumCover)
                 } else {
-                    binding.ivAlbumCover.setImageResource(android.R.color.darker_gray)
+                    Glide.with(binding.ivAlbumCover.context).clear(binding.ivAlbumCover)
+                    val pad = (binding.root.resources.displayMetrics.density * 28).toInt()
+                    binding.ivAlbumCover.setPadding(pad, pad, pad, pad)
+                    binding.ivAlbumCover.scaleType = android.widget.ImageView.ScaleType.FIT_CENTER
+                    binding.ivAlbumCover.setImageResource(com.developer.manali.galleryapp.R.drawable.folder)
                 }
             }
 
@@ -219,6 +232,8 @@ class AlbumAdapter(
                 }
 
                 if (album.coverUri != null) {
+                    binding.ivAlbumCover.setPadding(0, 0, 0, 0)
+                    binding.ivAlbumCover.scaleType = android.widget.ImageView.ScaleType.CENTER_CROP
                     Glide.with(binding.ivAlbumCover.context)
                         .load(album.coverUri)
                         .override(300, 300)
@@ -226,7 +241,11 @@ class AlbumAdapter(
                         .centerCrop()
                         .into(binding.ivAlbumCover)
                 } else {
-                    binding.ivAlbumCover.setImageResource(android.R.color.darker_gray)
+                    Glide.with(binding.ivAlbumCover.context).clear(binding.ivAlbumCover)
+                    val pad = (binding.root.resources.displayMetrics.density * 12).toInt()
+                    binding.ivAlbumCover.setPadding(pad, pad, pad, pad)
+                    binding.ivAlbumCover.scaleType = android.widget.ImageView.ScaleType.FIT_CENTER
+                    binding.ivAlbumCover.setImageResource(com.developer.manali.galleryapp.R.drawable.folder)
                 }
             }
 

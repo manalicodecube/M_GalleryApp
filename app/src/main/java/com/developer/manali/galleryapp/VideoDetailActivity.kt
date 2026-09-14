@@ -58,6 +58,25 @@ class VideoDetailActivity : BaseActivity() {
         }
     }
 
+    private var pendingRenameItem: MediaItem? = null
+    private var pendingRenameName: String? = null
+
+    private val renameLauncher = registerForActivityResult(
+        androidx.activity.result.contract.ActivityResultContracts.StartIntentSenderForResult()
+    ) { result ->
+        if (result.resultCode == RESULT_OK) {
+            val item = pendingRenameItem
+            val name = pendingRenameName
+            if (item != null && name != null) {
+                executeRename(item, name)
+            }
+        } else {
+            Toast.makeText(this, getString(R.string.permission_required_to_rename), Toast.LENGTH_SHORT).show()
+        }
+        pendingRenameItem = null
+        pendingRenameName = null
+    }
+
     private val passwordSetupLauncherForVault = registerForActivityResult(
         androidx.activity.result.contract.ActivityResultContracts.StartActivityForResult()
     ) { result ->
@@ -749,24 +768,46 @@ class VideoDetailActivity : BaseActivity() {
                 return@setOnClickListener
             }
             dialog.dismiss()
-
-            lifecycleScope.launch {
-                val updatedItem = mediaRepository.renameMediaItem(this@VideoDetailActivity, item, enteredName)
-                if (updatedItem != null) {
-                    if (currentPosition in 0 until videoList.size) {
-                        videoList[currentPosition] = updatedItem
-                        binding.tvVideoDetailTitle.text = updatedItem.displayName
-                    }
-                    Toast.makeText(this@VideoDetailActivity,
-                        getString(R.string.renamed_to, updatedItem.displayName), Toast.LENGTH_SHORT).show()
-                } else {
-                    Toast.makeText(this@VideoDetailActivity,
-                        getString(R.string.failed_to_rename_video), Toast.LENGTH_SHORT).show()
-                }
-            }
+            executeRename(item, enteredName)
         }
 
         dialog.show()
+    }
+
+    private fun executeRename(item: MediaItem, enteredName: String) {
+        lifecycleScope.launch {
+            when (val result = mediaRepository.renameMediaItem(this@VideoDetailActivity, item, enteredName)) {
+                is MediaRepository.RenameResult.Success -> {
+                    val updatedItem = result.updatedItem
+                    if (currentPosition in 0 until videoList.size) {
+                        videoList[currentPosition] = updatedItem
+                        com.developer.manali.galleryapp.data.MediaDataHolder.mediaList = videoList
+                        binding.tvVideoDetailTitle.text = updatedItem.displayName
+                    }
+                    sendBroadcast(Intent("com.developer.manali.galleryapp.ALBUMS_UPDATED"))
+                    setResult(RESULT_OK)
+                    Toast.makeText(
+                        this@VideoDetailActivity,
+                        getString(R.string.renamed_to, updatedItem.displayName),
+                        Toast.LENGTH_SHORT
+                    ).show()
+                }
+                is MediaRepository.RenameResult.PermissionRequired -> {
+                    pendingRenameItem = item
+                    pendingRenameName = enteredName
+                    val intentSenderRequest =
+                        androidx.activity.result.IntentSenderRequest.Builder(result.intentSender).build()
+                    renameLauncher.launch(intentSenderRequest)
+                }
+                is MediaRepository.RenameResult.Failed -> {
+                    Toast.makeText(
+                        this@VideoDetailActivity,
+                        getString(R.string.failed_to_rename_video),
+                        Toast.LENGTH_SHORT
+                    ).show()
+                }
+            }
+        }
     }
 
     private fun showVideoInfoDialog() {

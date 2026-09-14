@@ -21,7 +21,7 @@
     <color name="callerBackgroundColor">#F6F6F8</color>
     <color name="callerAdHeadingColor">#000000</color>
     <color name="black">#FF000000</color>
-    <color name="white">#FFFFFFFF</color>
+    <color name="white">#FFFFF7</color>
     <color name="active_tab_text">#0d51ef</color>
     <color name="red">#c30010</color>
 

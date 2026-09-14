@@ -144,10 +144,9 @@ class AlbumDetailActivity : BaseActivity() {
     override fun onResume() {
         super.onResume()
         val prefs = AppPreferences.getInstance(this)
+        applyViewType()
         if (!prefs.isListView && currentSpanCount != prefs.gridColumns) {
             updateGridColumns(prefs.gridColumns)
-        } else {
-            applyViewType()
         }
         loadAlbumMedia()
         try {
@@ -170,6 +169,8 @@ class AlbumDetailActivity : BaseActivity() {
     private fun setupRecyclerView() {
         val isList = AppPreferences.getInstance(this).isListView
         currentSpanCount = if (isList) 1 else AppPreferences.getInstance(this).gridColumns
+        binding.rvAlbumDetail.setHasFixedSize(true)
+        binding.rvAlbumDetail.setItemViewCacheSize(25)
         binding.rvAlbumDetail.layoutManager = GridLayoutManager(this, currentSpanCount)
         mediaAdapter = AlbumMediaAdapter { mediaItem ->
             val clickAction = {
@@ -240,14 +241,15 @@ class AlbumDetailActivity : BaseActivity() {
 
     fun updateGridColumns(newSpanCount: Int) {
         val span = newSpanCount.coerceIn(2, 7)
-        if (currentSpanCount == span) return
+        if (currentSpanCount == span && lastAppliedIsList == false) return
         currentSpanCount = span
         val prefs = AppPreferences.getInstance(this)
-        val oldSpan = prefs.gridColumns
         prefs.gridColumns = span
         prefs.photosGridColumns = span
         prefs.videosGridColumns = span
         prefs.viewType = AppPreferences.VIEW_TYPE_GRID
+        prefs.photosViewType = AppPreferences.VIEW_TYPE_GRID
+        prefs.videosViewType = AppPreferences.VIEW_TYPE_GRID
 
         val savedState = binding.rvAlbumDetail.layoutManager?.onSaveInstanceState()
         lastAppliedSpan = span
@@ -271,12 +273,12 @@ class AlbumDetailActivity : BaseActivity() {
                 binding.rvAlbumDetail.layoutManager?.onRestoreInstanceState(savedState)
             }
         }
+        mediaAdapter.notifyDataSetChanged()
 
-        if (oldSpan != span) {
-            sendBroadcast(Intent("com.developer.manali.galleryapp.GRID_COLUMNS_CHANGED").apply {
-                putExtra("span_count", span)
-            })
-        }
+        sendBroadcast(Intent("com.developer.manali.galleryapp.GRID_COLUMNS_CHANGED").apply {
+            setPackage(packageName)
+            putExtra("span_count", span)
+        })
     }
 
     private fun setupListeners() {
@@ -423,25 +425,38 @@ class AlbumDetailActivity : BaseActivity() {
             val lockedMedia = AppPreferences.getInstance(this@AlbumDetailActivity).getLockedMediaIds()
             val mediaItems = rawMediaItems.filter { !lockedMedia.contains(it.id.toString()) }
 
+            val appPrefs = AppPreferences.getInstance(this@AlbumDetailActivity)
+            val sortedMediaItems = when (appPrefs.sortBy) {
+                AppPreferences.SORT_NEWEST -> mediaItems.sortedByDescending { it.dateAdded }
+                AppPreferences.SORT_OLDEST -> mediaItems.sortedBy { it.dateAdded }
+                AppPreferences.SORT_NAME_ASC -> mediaItems.sortedWith(
+                    compareBy(String.CASE_INSENSITIVE_ORDER) { it.displayName }
+                )
+                AppPreferences.SORT_NAME_DESC -> mediaItems.sortedWith(
+                    compareByDescending(String.CASE_INSENSITIVE_ORDER) { it.displayName }
+                )
+                else -> mediaItems.sortedByDescending { it.dateAdded }
+            }
+
             albumMediaItems.clear()
-            albumMediaItems.addAll(mediaItems)
+            albumMediaItems.addAll(sortedMediaItems)
 
             binding.progressAlbumDetail.visibility = View.GONE
             binding.swipeRefreshAlbumDetail.isRefreshing = false
 
-            val totalSize = mediaItems.sumOf { it.size }
-            val formattedCount = java.text.NumberFormat.getNumberInstance(java.util.Locale.US).format(mediaItems.size)
-            val countStr = if (mediaItems.size == 1) getString(R.string._1_item) else getString(R.string.items,formattedCount)
+            val totalSize = sortedMediaItems.sumOf { it.size }
+            val formattedCount = java.text.NumberFormat.getNumberInstance(java.util.Locale.US).format(sortedMediaItems.size)
+            val countStr = if (sortedMediaItems.size == 1) getString(R.string._1_item) else getString(R.string.items,formattedCount)
             val sizeStr = MediaRepository.formatFileSize(totalSize)
             binding.tvAlbumDetailCount.text = "$countStr • $sizeStr"
 
-            if (mediaItems.isEmpty()) {
+            if (sortedMediaItems.isEmpty()) {
                 binding.layoutEmptyAlbumDetail.visibility = View.VISIBLE
                 binding.rvAlbumDetail.visibility = View.GONE
             } else {
                 binding.layoutEmptyAlbumDetail.visibility = View.GONE
                 binding.rvAlbumDetail.visibility = View.VISIBLE
-                mediaAdapter.submitList(mediaItems)
+                mediaAdapter.submitList(sortedMediaItems)
             }
         }
     }
@@ -834,6 +849,10 @@ class AlbumDetailActivity : BaseActivity() {
         btnCreate.setOnClickListener {
             val name = etName.text.toString().trim()
             if (name.isNotEmpty()) {
+                if (com.developer.manali.galleryapp.data.MediaRepository.albumExists(this, name)) {
+                    Toast.makeText(this, getString(R.string.album_already_exists), Toast.LENGTH_SHORT).show()
+                    return@setOnClickListener
+                }
                 dialog.dismiss()
                 executeMove(null, name, selected)
             } else {
@@ -941,6 +960,11 @@ class AlbumDetailActivity : BaseActivity() {
         layoutNameAsc.setOnClickListener { updateSelection(AppPreferences.SORT_NAME_ASC) }
         layoutNameDesc.setOnClickListener { updateSelection(AppPreferences.SORT_NAME_DESC) }
 
+        rbNewest.setOnClickListener { updateSelection(AppPreferences.SORT_NEWEST) }
+        rbOldest.setOnClickListener { updateSelection(AppPreferences.SORT_OLDEST) }
+        rbNameAsc.setOnClickListener { updateSelection(AppPreferences.SORT_NAME_ASC) }
+        rbNameDesc.setOnClickListener { updateSelection(AppPreferences.SORT_NAME_DESC) }
+
         btnCancel.setOnClickListener {
             bottomSheetDialog.dismiss()
         }
@@ -948,6 +972,14 @@ class AlbumDetailActivity : BaseActivity() {
         btnDone.setOnClickListener {
             appPrefs.sortBy = selectedSort
             loadAlbumMedia()
+            val sortLabel = when (selectedSort) {
+                AppPreferences.SORT_NEWEST -> getString(R.string.newest_on_top)
+                AppPreferences.SORT_OLDEST -> getString(R.string.oldest_on_top)
+                AppPreferences.SORT_NAME_ASC -> getString(R.string.name_a_z)
+                AppPreferences.SORT_NAME_DESC -> getString(R.string.name_z_a)
+                else -> getString(R.string.sorted)
+            }
+            Toast.makeText(this, getString(R.string.applied, sortLabel), Toast.LENGTH_SHORT).show()
             bottomSheetDialog.dismiss()
         }
 

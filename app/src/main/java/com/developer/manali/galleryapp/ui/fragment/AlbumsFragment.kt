@@ -126,6 +126,8 @@ class AlbumsFragment : Fragment() {
         )
         albumAdapter.setListView(isList)
 
+        binding.rvAlbums.setHasFixedSize(true)
+        binding.rvAlbums.setItemViewCacheSize(25)
         binding.rvAlbums.layoutManager = GridLayoutManager(requireContext(), span)
         binding.rvAlbums.adapter = albumAdapter
 
@@ -237,6 +239,11 @@ class AlbumsFragment : Fragment() {
     }
 
 
+    fun isAlbumPresent(name: String): Boolean {
+        val trimmed = name.trim()
+        return allAlbums.any { it.bucketName.equals(trimmed, ignoreCase = true) }
+    }
+
     fun showCreateAlbumDialog() {
         val dialog = Dialog(requireContext())
         dialog.requestWindowFeature(Window.FEATURE_NO_TITLE)
@@ -260,8 +267,10 @@ class AlbumsFragment : Fragment() {
         btnCreate.setOnClickListener {
             val name = etName.text.toString().trim()
             if (name.isNotEmpty()) {
-                createNewAlbum(name)
-                dialog.dismiss()
+                val created = createNewAlbum(name)
+                if (created) {
+                    dialog.dismiss()
+                }
             } else {
                 Toast.makeText(requireContext(), getString(R.string.please_enter_album_name), Toast.LENGTH_SHORT).show()
             }
@@ -272,25 +281,33 @@ class AlbumsFragment : Fragment() {
     }
 
 
-    fun createNewAlbum(name: String, providedContext: android.content.Context? = null) {
-        val safeContext = providedContext ?: context ?: return
+    fun createNewAlbum(name: String, providedContext: android.content.Context? = null): Boolean {
+        val safeContext = providedContext ?: context ?: return false
+        val trimmed = name.trim()
+        if (trimmed.isEmpty()) return false
+
+        if (isAlbumPresent(trimmed) || com.developer.manali.galleryapp.data.MediaRepository.albumExists(safeContext, trimmed)) {
+            Toast.makeText(safeContext, safeContext.getString(R.string.album_already_exists), Toast.LENGTH_SHORT).show()
+            return false
+        }
+
         try {
             val baseDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES)
-            val newDir = File(baseDir, name)
+            val newDir = File(baseDir, trimmed)
             if (!newDir.exists()) {
                 newDir.mkdirs()
             }
-            com.developer.manali.galleryapp.data.AppPreferences.getInstance(safeContext).addCreatedAlbum(name)
+            com.developer.manali.galleryapp.data.AppPreferences.getInstance(safeContext).addCreatedAlbum(trimmed)
+            com.developer.manali.galleryapp.data.MediaRepository.clearCache()
         } catch (_: Exception) {}
 
         val newAlbum = AlbumItem(
-            bucketId = name,
-            bucketName = name,
+            bucketId = trimmed,
+            bucketName = trimmed,
             coverUri = null,
             itemCount = 0
         )
 
-        allAlbums.removeAll { it.bucketName.equals(name, ignoreCase = true) }
         allAlbums.add(0, newAlbum)
 
         filterAlbums(currentSearchQuery)
@@ -298,7 +315,9 @@ class AlbumsFragment : Fragment() {
             binding.rvAlbums.smoothScrollToPosition(0)
         }
 
-        Toast.makeText(safeContext, safeContext.getString(R.string.album_created, name), Toast.LENGTH_SHORT).show()
+        safeContext.sendBroadcast(android.content.Intent("com.developer.manali.galleryapp.ALBUMS_UPDATED"))
+        Toast.makeText(safeContext, safeContext.getString(R.string.album_created, trimmed), Toast.LENGTH_SHORT).show()
+        return true
     }
 
     fun applySort(sortKey: String? = null) {
@@ -385,6 +404,16 @@ class AlbumsFragment : Fragment() {
         if (::albumAdapter.isInitialized) {
             albumAdapter.exitSelectionMode()
         }
+    }
+
+    fun removeAlbums(albumsToRemove: List<AlbumItem>) {
+        val ids = albumsToRemove.map { it.bucketId }.toSet()
+        val names = albumsToRemove.map { it.bucketName.lowercase() }.toSet()
+        allAlbums.removeAll { ids.contains(it.bucketId) || names.contains(it.bucketName.lowercase()) }
+        if (::albumAdapter.isInitialized) {
+            albumAdapter.removeAlbums(albumsToRemove)
+        }
+        filterAlbums(currentSearchQuery)
     }
 
     fun getSelectedItems(): List<AlbumItem> {

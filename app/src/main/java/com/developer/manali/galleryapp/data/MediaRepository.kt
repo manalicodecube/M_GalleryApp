@@ -3,6 +3,7 @@ package com.developer.manali.galleryapp.data
 import android.content.ContentUris
 import android.content.ContentValues
 import android.content.Context
+import android.content.IntentSender
 import android.net.Uri
 import android.media.MediaScannerConnection
 import android.os.Build
@@ -27,6 +28,12 @@ data class MediaStats(
 }
 
 class MediaRepository {
+
+    sealed class RenameResult {
+        data class Success(val updatedItem: MediaItem) : RenameResult()
+        data class PermissionRequired(val intentSender: IntentSender) : RenameResult()
+        object Failed : RenameResult()
+    }
 
     fun hasCachedPhotos(): Boolean = Companion.hasCachedPhotos()
     fun hasCachedVideos(): Boolean = Companion.hasCachedVideos()
@@ -367,6 +374,47 @@ class MediaRepository {
                 )
             )
         }
+
+        val createdAlbums = appPrefs.getCreatedAlbums()
+        for (createdName in createdAlbums) {
+            val exists = result.any { it.bucketName.equals(createdName, ignoreCase = true) }
+            if (!exists) {
+                if (excludeLocked && (lockedAlbums.contains(createdName) || lockedAlbums.contains(createdName.lowercase()))) {
+                    continue
+                }
+                result.add(
+                    AlbumItem(
+                        bucketId = createdName,
+                        bucketName = createdName,
+                        coverUri = null,
+                        itemCount = 0,
+                        totalSizeBytes = 0L
+                    )
+                )
+            }
+        }
+
+        try {
+            val picturesDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES)
+            val subDirs = picturesDir.listFiles { file -> file.isDirectory }
+            subDirs?.forEach { dir ->
+                val dirName = dir.name
+                if (!dirName.startsWith(".") && !result.any { it.bucketName.equals(dirName, ignoreCase = true) }) {
+                    if (!excludeLocked || (!lockedAlbums.contains(dirName) && !lockedAlbums.contains(dirName.lowercase()))) {
+                        result.add(
+                            AlbumItem(
+                                bucketId = dirName,
+                                bucketName = dirName,
+                                coverUri = null,
+                                itemCount = 0,
+                                totalSizeBytes = 0L
+                            )
+                        )
+                    }
+                }
+            }
+        } catch (_: Exception) {}
+
         result.sortByDescending { it.itemCount }
         if (excludeLocked) {
             cachedAlbums = result
@@ -615,10 +663,110 @@ class MediaRepository {
             foundDir!!
         } else {
             val picturesDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES)
-            File(picturesDir, bucketName).apply {
-                if (!exists()) mkdirs()
+            val picFolder = File(picturesDir, bucketName)
+            if (picFolder.exists()) {
+                picFolder
+            } else {
+                val dcimDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DCIM)
+                val dcimFolder = File(dcimDir, bucketName)
+                if (dcimFolder.exists()) dcimFolder else picFolder
             }
         }
+    }
+
+    suspend fun getAllMediaInAlbums(context: Context, albums: List<AlbumItem>): List<MediaItem> = withContext(Dispatchers.IO) {
+        val resultList = mutableListOf<MediaItem>()
+        if (albums.isEmpty()) return@withContext resultList
+
+        val bucketIds = albums.map { it.bucketId }.filter { it.isNotEmpty() }.toSet()
+        val bucketNames = albums.map { it.bucketName.lowercase() }.filter { it.isNotEmpty() }.toSet()
+
+        val extraBucketIds = mutableSetOf<String>()
+        for (album in albums) {
+            try {
+                val dir = getAlbumDirectory(context, album.bucketId, album.bucketName)
+                if (dir.exists()) {
+                    extraBucketIds.add(dir.absolutePath.lowercase().hashCode().toString())
+                }
+            } catch (_: Exception) {}
+        }
+        val allBucketIds = bucketIds + extraBucketIds
+
+        // Query Images
+        try {
+            val proj = arrayOf(
+                MediaStore.Images.Media._ID,
+                MediaStore.Images.Media.DATA,
+                MediaStore.Images.Media.BUCKET_ID,
+                MediaStore.Images.Media.BUCKET_DISPLAY_NAME
+            )
+            context.contentResolver.query(
+                MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
+                proj,
+                null,
+                null,
+                null
+            )?.use { cursor ->
+                val idCol = cursor.getColumnIndexOrThrow(MediaStore.Images.Media._ID)
+                val dataCol = cursor.getColumnIndex(MediaStore.Images.Media.DATA)
+                val bIdCol = cursor.getColumnIndex(MediaStore.Images.Media.BUCKET_ID)
+                val bNameCol = cursor.getColumnIndex(MediaStore.Images.Media.BUCKET_DISPLAY_NAME)
+                while (cursor.moveToNext()) {
+                    val bId = if (bIdCol != -1) cursor.getString(bIdCol) else null
+                    val bName = if (bNameCol != -1) cursor.getString(bNameCol) else null
+                    val path = if (dataCol != -1) cursor.getString(dataCol) else null
+                    val parentName = path?.let { try { File(it).parentFile?.name?.lowercase() } catch(_: Exception) { null } }
+
+                    val matches = (bId != null && allBucketIds.contains(bId)) ||
+                                  (bName != null && bucketNames.contains(bName.lowercase())) ||
+                                  (parentName != null && bucketNames.contains(parentName))
+                    if (matches) {
+                        val id = cursor.getLong(idCol)
+                        val uri = ContentUris.withAppendedId(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, id)
+                        resultList.add(MediaItem(id = id, uri = uri, path = path ?: "", displayName = "", mimeType = "image/*", size = 0L, dateAdded = 0L, isVideo = false))
+                    }
+                }
+            }
+        } catch (_: Exception) {}
+
+        // Query Videos
+        try {
+            val proj = arrayOf(
+                MediaStore.Video.Media._ID,
+                MediaStore.Video.Media.DATA,
+                MediaStore.Video.Media.BUCKET_ID,
+                MediaStore.Video.Media.BUCKET_DISPLAY_NAME
+            )
+            context.contentResolver.query(
+                MediaStore.Video.Media.EXTERNAL_CONTENT_URI,
+                proj,
+                null,
+                null,
+                null
+            )?.use { cursor ->
+                val idCol = cursor.getColumnIndexOrThrow(MediaStore.Video.Media._ID)
+                val dataCol = cursor.getColumnIndex(MediaStore.Video.Media.DATA)
+                val bIdCol = cursor.getColumnIndex(MediaStore.Video.Media.BUCKET_ID)
+                val bNameCol = cursor.getColumnIndex(MediaStore.Video.Media.BUCKET_DISPLAY_NAME)
+                while (cursor.moveToNext()) {
+                    val bId = if (bIdCol != -1) cursor.getString(bIdCol) else null
+                    val bName = if (bNameCol != -1) cursor.getString(bNameCol) else null
+                    val path = if (dataCol != -1) cursor.getString(dataCol) else null
+                    val parentName = path?.let { try { File(it).parentFile?.name?.lowercase() } catch(_: Exception) { null } }
+
+                    val matches = (bId != null && allBucketIds.contains(bId)) ||
+                                  (bName != null && bucketNames.contains(bName.lowercase())) ||
+                                  (parentName != null && bucketNames.contains(parentName))
+                    if (matches) {
+                        val id = cursor.getLong(idCol)
+                        val uri = ContentUris.withAppendedId(MediaStore.Video.Media.EXTERNAL_CONTENT_URI, id)
+                        resultList.add(MediaItem(id = id, uri = uri, path = path ?: "", displayName = "", mimeType = "video/*", size = 0L, dateAdded = 0L, isVideo = true))
+                    }
+                }
+            }
+        } catch (_: Exception) {}
+
+        resultList
     }
 
     suspend fun moveMediaItems(
@@ -831,8 +979,7 @@ class MediaRepository {
         context: Context,
         item: MediaItem,
         newName: String
-    ): MediaItem? = withContext(Dispatchers.IO) {
-        clearCache()
+    ): RenameResult = withContext(Dispatchers.IO) {
         try {
             val originalExtension = when {
                 item.displayName.contains(".") -> "." + item.displayName.substringAfterLast(".")
@@ -848,85 +995,108 @@ class MediaRepository {
             }
 
             if (finalDisplayName.isEmpty() || finalDisplayName == item.displayName) {
-                return@withContext item
+                return@withContext RenameResult.Success(item)
             }
 
-            var newPath = item.path
+            val baseTitle = if (finalDisplayName.contains(".")) finalDisplayName.substringBeforeLast(".") else finalDisplayName
             val oldFile = if (item.path.isNotEmpty()) File(item.path) else null
-            var destFile: File? = null
+            val parentDir = oldFile?.parentFile
 
-            if (oldFile != null && oldFile.exists()) {
-                val parentDir = oldFile.parentFile
-                if (parentDir != null && parentDir.exists()) {
-                    destFile = File(parentDir, finalDisplayName)
-
-                    var success = false
-                    if (oldFile.renameTo(destFile)) {
-                        success = true
-                    } else {
-                        try {
-                            oldFile.inputStream().use { input ->
-                                destFile.outputStream().use { output ->
-                                    input.copyTo(output)
-                                }
-                            }
-                            if (destFile.exists() && destFile.length() > 0) {
-                                success = true
-                                oldFile.delete()
-                            }
-                        } catch (_: Exception) {}
-                    }
-
-                    if (success && destFile.exists()) {
-                        newPath = destFile.absolutePath
-                    }
+            // 1. Direct file rename if permitted on disk (pre-Q or legacy external storage)
+            if (oldFile != null && oldFile.exists() && parentDir != null && parentDir.exists()) {
+                val destFile = File(parentDir, finalDisplayName)
+                if (destFile.exists() && destFile.absolutePath != oldFile.absolutePath) {
+                    return@withContext RenameResult.Failed
                 }
+                if (oldFile.renameTo(destFile)) {
+                    clearCache()
+                    try {
+                        val values = ContentValues().apply {
+                            put(MediaStore.MediaColumns.DISPLAY_NAME, finalDisplayName)
+                            put(MediaStore.MediaColumns.TITLE, baseTitle)
+                            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) {
+                                @Suppress("DEPRECATION")
+                                put(MediaStore.MediaColumns.DATA, destFile.absolutePath)
+                            }
+                            put(MediaStore.MediaColumns.SIZE, destFile.length())
+                        }
+                        context.contentResolver.update(item.uri, values, null, null)
+                    } catch (_: Exception) {}
+
+                    MediaScannerConnection.scanFile(
+                        context,
+                        arrayOf(destFile.absolutePath, oldFile.absolutePath),
+                        null,
+                        null
+                    )
+
+                    val updatedItem = item.copy(
+                        displayName = finalDisplayName,
+                        path = destFile.absolutePath
+                    )
+                    return@withContext RenameResult.Success(updatedItem)
+                }
+            }
+
+            // 2. Direct File.renameTo did not succeed (Scoped Storage on Android 10+).
+            // Updating MediaStore DISPLAY_NAME renames the physical file in-place on Android 10+ without copying.
+            val values = ContentValues().apply {
+                put(MediaStore.MediaColumns.DISPLAY_NAME, finalDisplayName)
+                put(MediaStore.MediaColumns.TITLE, baseTitle)
             }
 
             try {
-                val values = ContentValues().apply {
-                    put(MediaStore.MediaColumns.DISPLAY_NAME, finalDisplayName)
-                    val baseTitle = if (finalDisplayName.contains(".")) finalDisplayName.substringBeforeLast(".") else finalDisplayName
-                    put(MediaStore.MediaColumns.TITLE, baseTitle)
-                    if (destFile != null && destFile.exists()) {
-                        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) {
-                            @Suppress("DEPRECATION")
-                            put(MediaStore.MediaColumns.DATA, destFile.absolutePath)
+                val rows = context.contentResolver.update(item.uri, values, null, null)
+                if (rows > 0) {
+                    clearCache()
+                    var updatedPath = item.path
+                    try {
+                        context.contentResolver.query(
+                            item.uri,
+                            arrayOf(MediaStore.MediaColumns.DATA),
+                            null,
+                            null,
+                            null
+                        )?.use { cursor ->
+                            if (cursor.moveToFirst()) {
+                                val idx = cursor.getColumnIndex(MediaStore.MediaColumns.DATA)
+                                if (idx != -1) {
+                                    val p = cursor.getString(idx)
+                                    if (!p.isNullOrEmpty()) {
+                                        updatedPath = p
+                                    }
+                                }
+                            }
                         }
-                        put(MediaStore.MediaColumns.SIZE, destFile.length())
+                    } catch (_: Exception) {}
+
+                    if (updatedPath.isNotEmpty()) {
+                        MediaScannerConnection.scanFile(context, arrayOf(updatedPath), null, null)
                     }
+
+                    val updatedItem = item.copy(
+                        displayName = finalDisplayName,
+                        path = updatedPath
+                    )
+                    return@withContext RenameResult.Success(updatedItem)
                 }
-                context.contentResolver.update(item.uri, values, null, null)
-            } catch (_: Exception) {}
-
-            val scanList = mutableListOf<String>()
-            if (destFile != null && destFile.exists()) {
-                scanList.add(destFile.absolutePath)
-            }
-            if (oldFile != null && oldFile.exists()) {
-                scanList.add(oldFile.absolutePath)
-            }
-            if (scanList.isNotEmpty()) {
-                try {
-                    val latch = java.util.concurrent.CountDownLatch(scanList.size)
-                    MediaScannerConnection.scanFile(
-                        context,
-                        scanList.toTypedArray(),
-                        null
-                    ) { _, _ ->
-                        latch.countDown()
-                    }
-                    latch.await(1000, java.util.concurrent.TimeUnit.MILLISECONDS)
-                } catch (_: Exception) {}
+            } catch (recoverable: android.app.RecoverableSecurityException) {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                    return@withContext RenameResult.PermissionRequired(recoverable.userAction.actionIntent.intentSender)
+                }
+            } catch (sec: SecurityException) {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                    try {
+                        val pi = MediaStore.createWriteRequest(context.contentResolver, listOf(item.uri))
+                        return@withContext RenameResult.PermissionRequired(pi.intentSender)
+                    } catch (_: Exception) {}
+                }
             }
 
-            return@withContext item.copy(
-                displayName = finalDisplayName,
-                path = newPath
-            )
+            RenameResult.Failed
         } catch (e: Exception) {
             e.printStackTrace()
-            return@withContext null
+            RenameResult.Failed
         }
     }
 
@@ -1018,6 +1188,70 @@ class MediaRepository {
             cachedVideos = null
             cachedAlbums = null
             cachedAlbumsWithLocked = null
+        }
+
+        fun albumExists(context: Context, name: String): Boolean {
+            val trimmed = name.trim()
+            if (trimmed.isEmpty()) return false
+            val appPrefs = com.developer.manali.galleryapp.data.AppPreferences.getInstance(context)
+            if (appPrefs.getCreatedAlbums().any { it.equals(trimmed, ignoreCase = true) }) {
+                return true
+            }
+            if (cachedAlbums?.any { it.bucketName.equals(trimmed, ignoreCase = true) } == true) {
+                return true
+            }
+            if (cachedAlbumsWithLocked?.any { it.bucketName.equals(trimmed, ignoreCase = true) } == true) {
+                return true
+            }
+
+            try {
+                val baseDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES)
+                val dir = File(baseDir, trimmed)
+                if (dir.exists()) return true
+                val dcimDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DCIM)
+                val dirDcim = File(dcimDir, trimmed)
+                if (dirDcim.exists()) return true
+            } catch (_: Exception) {}
+
+            try {
+                val projection = arrayOf(MediaStore.Images.Media.BUCKET_DISPLAY_NAME)
+                context.contentResolver.query(
+                    MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
+                    projection,
+                    null,
+                    null,
+                    null
+                )?.use { cursor ->
+                    val col = cursor.getColumnIndex(MediaStore.Images.Media.BUCKET_DISPLAY_NAME)
+                    if (col != -1) {
+                        while (cursor.moveToNext()) {
+                            val bName = cursor.getString(col)
+                            if (bName != null && bName.equals(trimmed, ignoreCase = true)) {
+                                return true
+                            }
+                        }
+                    }
+                }
+                context.contentResolver.query(
+                    MediaStore.Video.Media.EXTERNAL_CONTENT_URI,
+                    projection,
+                    null,
+                    null,
+                    null
+                )?.use { cursor ->
+                    val col = cursor.getColumnIndex(MediaStore.Video.Media.BUCKET_DISPLAY_NAME)
+                    if (col != -1) {
+                        while (cursor.moveToNext()) {
+                            val bName = cursor.getString(col)
+                            if (bName != null && bName.equals(trimmed, ignoreCase = true)) {
+                                return true
+                            }
+                        }
+                    }
+                }
+            } catch (_: Exception) {}
+
+            return false
         }
 
         fun formatDuration(durationMs: Long): String {

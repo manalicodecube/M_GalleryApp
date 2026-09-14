@@ -48,6 +48,42 @@ class FavoriteActivity : BaseActivity() {
     private var pendingDirectoriesToCheck: List<String> = emptyList()
     private var pendingDeleteItems: List<MediaItem> = emptyList()
 
+    private val gridColumnsReceiver = object : android.content.BroadcastReceiver() {
+        override fun onReceive(context: android.content.Context?, intent: android.content.Intent?) {
+            if (intent?.action == "com.developer.manali.galleryapp.GRID_COLUMNS_CHANGED") {
+                val span = intent.getIntExtra("span_count", -1)
+                if (span in 2..7) {
+                    updateGridColumns(span)
+                }
+            }
+        }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        val prefs = AppPreferences.getInstance(this)
+        applyViewType()
+        if (!prefs.isListView && currentSpanCount != prefs.gridColumns) {
+            updateGridColumns(prefs.gridColumns)
+        }
+        loadFavoriteMedia()
+        try {
+            val filter = android.content.IntentFilter("com.developer.manali.galleryapp.GRID_COLUMNS_CHANGED")
+            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
+                registerReceiver(gridColumnsReceiver, filter, RECEIVER_NOT_EXPORTED)
+            } else {
+                registerReceiver(gridColumnsReceiver, filter)
+            }
+        } catch (_: Exception) {}
+    }
+
+    override fun onPause() {
+        super.onPause()
+        try {
+            unregisterReceiver(gridColumnsReceiver)
+        } catch (_: Exception) {}
+    }
+
     private val deleteLauncher = registerForActivityResult(
         androidx.activity.result.contract.ActivityResultContracts.StartIntentSenderForResult()
     ) { result ->
@@ -119,20 +155,11 @@ class FavoriteActivity : BaseActivity() {
             })
     }
 
-    override fun onResume() {
-        super.onResume()
-        val prefs = AppPreferences.getInstance(this)
-        if (!prefs.isListView && currentSpanCount != prefs.gridColumns) {
-            updateGridColumns(prefs.gridColumns)
-        } else {
-            applyViewType()
-        }
-        loadFavoriteMedia()
-    }
-
     private fun setupRecyclerView() {
         val isList = AppPreferences.getInstance(this).isListView
         currentSpanCount = if (isList) 1 else AppPreferences.getInstance(this).gridColumns
+        binding.rvFavorites.setHasFixedSize(true)
+        binding.rvFavorites.setItemViewCacheSize(25)
         binding.rvFavorites.layoutManager = GridLayoutManager(this, currentSpanCount)
         mediaAdapter = AlbumMediaAdapter { mediaItem ->
             if (mediaItem.isVideo) {
@@ -185,15 +212,19 @@ class FavoriteActivity : BaseActivity() {
     }
 
     fun updateGridColumns(newSpanCount: Int) {
-        currentSpanCount = newSpanCount
+        val span = newSpanCount.coerceIn(2, 7)
+        if (currentSpanCount == span && lastAppliedIsList == false) return
+        currentSpanCount = span
         val prefs = AppPreferences.getInstance(this)
-        prefs.gridColumns = newSpanCount
-        prefs.photosGridColumns = newSpanCount
-        prefs.videosGridColumns = newSpanCount
+        prefs.gridColumns = span
+        prefs.photosGridColumns = span
+        prefs.videosGridColumns = span
         prefs.viewType = AppPreferences.VIEW_TYPE_GRID
+        prefs.photosViewType = AppPreferences.VIEW_TYPE_GRID
+        prefs.videosViewType = AppPreferences.VIEW_TYPE_GRID
 
         val savedState = binding.rvFavorites.layoutManager?.onSaveInstanceState()
-        lastAppliedSpan = newSpanCount
+        lastAppliedSpan = span
         lastAppliedIsList = false
 
         mediaAdapter.setListView(false)
@@ -207,13 +238,19 @@ class FavoriteActivity : BaseActivity() {
 
         val existingManager = binding.rvFavorites.layoutManager as? GridLayoutManager
         if (existingManager != null) {
-            existingManager.spanCount = newSpanCount
+            existingManager.spanCount = span
         } else {
-            binding.rvFavorites.layoutManager = GridLayoutManager(this, newSpanCount)
+            binding.rvFavorites.layoutManager = GridLayoutManager(this, span)
             if (savedState != null) {
                 binding.rvFavorites.layoutManager?.onRestoreInstanceState(savedState)
             }
         }
+        mediaAdapter.notifyDataSetChanged()
+
+        sendBroadcast(android.content.Intent("com.developer.manali.galleryapp.GRID_COLUMNS_CHANGED").apply {
+            setPackage(packageName)
+            putExtra("span_count", span)
+        })
     }
 
     private fun setupListeners() {
@@ -712,6 +749,10 @@ class FavoriteActivity : BaseActivity() {
         btnCreate.setOnClickListener {
             val name = etName.text.toString().trim()
             if (name.isNotEmpty()) {
+                if (com.developer.manali.galleryapp.data.MediaRepository.albumExists(this, name)) {
+                    Toast.makeText(this, getString(R.string.album_already_exists), Toast.LENGTH_SHORT).show()
+                    return@setOnClickListener
+                }
                 dialog.dismiss()
                 executeMove(null, name, selected)
             } else {
@@ -995,6 +1036,11 @@ class FavoriteActivity : BaseActivity() {
         layoutNameAsc.setOnClickListener { updateSelection(AppPreferences.SORT_NAME_ASC) }
         layoutNameDesc.setOnClickListener { updateSelection(AppPreferences.SORT_NAME_DESC) }
 
+        rbNewest.setOnClickListener { updateSelection(AppPreferences.SORT_NEWEST) }
+        rbOldest.setOnClickListener { updateSelection(AppPreferences.SORT_OLDEST) }
+        rbNameAsc.setOnClickListener { updateSelection(AppPreferences.SORT_NAME_ASC) }
+        rbNameDesc.setOnClickListener { updateSelection(AppPreferences.SORT_NAME_DESC) }
+
         btnCancel.setOnClickListener {
             bottomSheetDialog.dismiss()
         }
@@ -1002,6 +1048,14 @@ class FavoriteActivity : BaseActivity() {
         btnDone.setOnClickListener {
             appPrefs.sortBy = selectedSort
             loadFavoriteMedia()
+            val sortLabel = when (selectedSort) {
+                AppPreferences.SORT_NEWEST -> getString(R.string.newest_on_top)
+                AppPreferences.SORT_OLDEST -> getString(R.string.oldest_on_top)
+                AppPreferences.SORT_NAME_ASC -> getString(R.string.name_a_z)
+                AppPreferences.SORT_NAME_DESC -> getString(R.string.name_z_a)
+                else -> getString(R.string.sorted)
+            }
+            Toast.makeText(this, getString(R.string.applied, sortLabel), Toast.LENGTH_SHORT).show()
             bottomSheetDialog.dismiss()
         }
 

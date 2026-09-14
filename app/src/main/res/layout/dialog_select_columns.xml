@@ -133,7 +133,7 @@
             android:fontFamily="sans-serif-bold"
             android:gravity="center"
             android:text="@string/ok"
-            android:textColor="@color/white"
+            android:textColor="#FFFFFF"
             android:textSize="15sp"
             android:textStyle="bold" />
 

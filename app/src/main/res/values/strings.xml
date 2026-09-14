@@ -182,6 +182,7 @@
     <string name="rename_photo">Rename Photo</string>
     <string name="please_enter_a_valid_name">Please enter a valid name</string>
     <string name="failed_to_rename_file">Failed to rename file</string>
+    <string name="permission_required_to_rename">Permission is required to rename this file</string>
     <string name="deleted_permanently">Deleted permanently</string>
     <string name="wallpaper_set_on_successfully">Wallpaper set on %1$s successfully</string>
     <string name="failed_to_apply_wallpaper">Failed to apply wallpaper</string>
@@ -242,4 +243,5 @@
     <string name="unlock">Unlock</string>
     <string name="please_wait_for_video_to_load">Please wait for video to load</string>
     <string name="equalizer_not_supported_on_this_device">Equalizer not supported on this device</string>
+    <string name="album_already_exists">Album with this name already exists</string>
 </resources>

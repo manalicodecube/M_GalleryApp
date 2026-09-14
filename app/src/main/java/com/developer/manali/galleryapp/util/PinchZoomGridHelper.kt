@@ -19,28 +19,25 @@ class PinchZoomGridHelper(
         context,
         object : ScaleGestureDetector.SimpleOnScaleGestureListener() {
             override fun onScaleBegin(detector: ScaleGestureDetector): Boolean {
-                if (getSpanCount() <= 1) {
-                    isScaling = false
-                    return false
-                }
                 scaleFactor = 1.0f
-                isScaling = true
+                isScaling = false
                 return true
             }
 
             override fun onScale(detector: ScaleGestureDetector): Boolean {
-                if (getSpanCount() <= 1) return false
-
                 scaleFactor *= detector.scaleFactor
+                if (kotlin.math.abs(1.0f - scaleFactor) > 0.05f) {
+                    isScaling = true
+                }
                 val currentSpan = getSpanCount()
-                if (scaleFactor > 1.22f && currentSpan > minSpan) {
+                if (scaleFactor > 1.20f && currentSpan > minSpan) {
                     val newSpan = (currentSpan - 1).coerceAtLeast(minSpan)
                     if (newSpan != currentSpan) {
                         onSpanCountChanged(newSpan)
                         scaleFactor = 1.0f
                     }
-                } else if (scaleFactor < 0.82f && currentSpan < maxSpan) {
-                    val newSpan = (currentSpan + 1).coerceAtMost(maxSpan)
+                } else if (scaleFactor < 0.83f && (currentSpan < maxSpan || currentSpan <= 1)) {
+                    val newSpan = if (currentSpan <= 1) minSpan else (currentSpan + 1).coerceAtMost(maxSpan)
                     if (newSpan != currentSpan) {
                         onSpanCountChanged(newSpan)
                         scaleFactor = 1.0f
@@ -59,22 +56,30 @@ class PinchZoomGridHelper(
     fun attachToRecyclerView(recyclerView: RecyclerView) {
         recyclerView.addOnItemTouchListener(object : RecyclerView.SimpleOnItemTouchListener() {
             override fun onInterceptTouchEvent(rv: RecyclerView, e: MotionEvent): Boolean {
-                if (getSpanCount() <= 1) return false
-
+                if (e.actionMasked == MotionEvent.ACTION_DOWN || e.actionMasked == MotionEvent.ACTION_UP || e.actionMasked == MotionEvent.ACTION_CANCEL || e.pointerCount < 2) {
+                    isScaling = false
+                    scaleFactor = 1.0f
+                }
                 if (e.pointerCount >= 2) {
-                    rv.parent?.requestDisallowInterceptTouchEvent(true)
                     scaleDetector.onTouchEvent(e)
-                    return isScaling
+                    if (isScaling) {
+                        rv.parent?.requestDisallowInterceptTouchEvent(true)
+                        return true
+                    }
                 }
                 return false
             }
 
             override fun onTouchEvent(rv: RecyclerView, e: MotionEvent) {
-                if (getSpanCount() <= 1) return
-
+                if (e.actionMasked == MotionEvent.ACTION_DOWN || e.actionMasked == MotionEvent.ACTION_UP || e.actionMasked == MotionEvent.ACTION_CANCEL || e.pointerCount < 2) {
+                    isScaling = false
+                    scaleFactor = 1.0f
+                }
                 if (e.pointerCount >= 2 || isScaling) {
-                    rv.parent?.requestDisallowInterceptTouchEvent(true)
                     scaleDetector.onTouchEvent(e)
+                    if (isScaling) {
+                        rv.parent?.requestDisallowInterceptTouchEvent(true)
+                    }
                 }
             }
         })

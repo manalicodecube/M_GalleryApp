@@ -42,47 +42,53 @@ class AppPreferences private constructor(context: Context) {
         get() = albumsViewType == VIEW_TYPE_LIST
 
     var albumsSortBy: String
-        get() = prefs.getString(KEY_ALBUMS_SORT_BY, SORT_NAME_ASC) ?: SORT_NAME_ASC
-        set(value) = prefs.edit().putString(KEY_ALBUMS_SORT_BY, value).apply()
+        get() = prefs.getString(KEY_ALBUMS_SORT_BY, sortBy) ?: sortBy
+        set(value) = prefs.edit().putString(KEY_ALBUMS_SORT_BY, value).putString(KEY_SORT_BY, value).apply()
 
     var photosViewType: String
-        get() = prefs.getString(KEY_PHOTOS_VIEW_TYPE, VIEW_TYPE_GRID) ?: VIEW_TYPE_GRID
-        set(value) = prefs.edit().putString(KEY_PHOTOS_VIEW_TYPE, value).apply()
+        get() = prefs.getString(KEY_PHOTOS_VIEW_TYPE, viewType) ?: viewType
+        set(value) = prefs.edit().putString(KEY_PHOTOS_VIEW_TYPE, value).putString(KEY_VIEW_TYPE, value).apply()
 
     val isPhotosListView: Boolean
         get() = photosViewType == VIEW_TYPE_LIST
 
     var photosSortBy: String
-        get() = prefs.getString(KEY_PHOTOS_SORT_BY, SORT_NEWEST) ?: SORT_NEWEST
-        set(value) = prefs.edit().putString(KEY_PHOTOS_SORT_BY, value).apply()
+        get() = prefs.getString(KEY_PHOTOS_SORT_BY, sortBy) ?: sortBy
+        set(value) = prefs.edit().putString(KEY_PHOTOS_SORT_BY, value).putString(KEY_SORT_BY, value).apply()
 
     var videosViewType: String
-        get() = prefs.getString(KEY_VIDEOS_VIEW_TYPE, VIEW_TYPE_GRID) ?: VIEW_TYPE_GRID
-        set(value) = prefs.edit().putString(KEY_VIDEOS_VIEW_TYPE, value).apply()
+        get() = prefs.getString(KEY_VIDEOS_VIEW_TYPE, viewType) ?: viewType
+        set(value) = prefs.edit().putString(KEY_VIDEOS_VIEW_TYPE, value).putString(KEY_VIEW_TYPE, value).apply()
 
     val isVideosListView: Boolean
         get() = videosViewType == VIEW_TYPE_LIST
 
     var videosSortBy: String
-        get() = prefs.getString(KEY_VIDEOS_SORT_BY, SORT_NEWEST) ?: SORT_NEWEST
-        set(value) = prefs.edit().putString(KEY_VIDEOS_SORT_BY, value).apply()
+        get() = prefs.getString(KEY_VIDEOS_SORT_BY, sortBy) ?: sortBy
+        set(value) = prefs.edit().putString(KEY_VIDEOS_SORT_BY, value).putString(KEY_SORT_BY, value).apply()
 
     var viewType: String
-        get() = photosViewType
+        get() = prefs.getString(KEY_VIEW_TYPE, prefs.getString(KEY_PHOTOS_VIEW_TYPE, VIEW_TYPE_GRID) ?: VIEW_TYPE_GRID) ?: VIEW_TYPE_GRID
         set(value) {
-            photosViewType = value
-            videosViewType = value
+            prefs.edit()
+                .putString(KEY_VIEW_TYPE, value)
+                .putString(KEY_PHOTOS_VIEW_TYPE, value)
+                .putString(KEY_VIDEOS_VIEW_TYPE, value)
+                .apply()
         }
 
     val isListView: Boolean
         get() = viewType == VIEW_TYPE_LIST
 
     var sortBy: String
-        get() = photosSortBy
+        get() = prefs.getString(KEY_SORT_BY, prefs.getString(KEY_PHOTOS_SORT_BY, SORT_NEWEST) ?: SORT_NEWEST) ?: SORT_NEWEST
         set(value) {
-            photosSortBy = value
-            videosSortBy = value
-            albumsSortBy = value
+            prefs.edit()
+                .putString(KEY_SORT_BY, value)
+                .putString(KEY_PHOTOS_SORT_BY, value)
+                .putString(KEY_VIDEOS_SORT_BY, value)
+                .putString(KEY_ALBUMS_SORT_BY, value)
+                .apply()
         }
 
     fun getFavoriteIds(): MutableSet<String> {
@@ -134,10 +140,35 @@ class AppPreferences private constructor(context: Context) {
     }
 
     fun addCreatedAlbum(name: String) {
+        val trimmed = name.trim()
+        if (trimmed.isEmpty()) return
         com.developer.manali.galleryapp.data.MediaRepository.clearCache()
         val set = getCreatedAlbums()
-        set.add(name)
+        // If already present with different case, keep or update
+        val existing = set.firstOrNull { it.equals(trimmed, ignoreCase = true) }
+        if (existing != null) {
+            set.remove(existing)
+        }
+        set.add(trimmed)
         prefs.edit().putStringSet(KEY_CREATED_ALBUMS, set).apply()
+    }
+
+    fun removeCreatedAlbum(name: String) {
+        val trimmed = name.trim()
+        if (trimmed.isEmpty()) return
+        com.developer.manali.galleryapp.data.MediaRepository.clearCache()
+        val set = getCreatedAlbums()
+        val iterator = set.iterator()
+        var changed = false
+        while (iterator.hasNext()) {
+            if (iterator.next().equals(trimmed, ignoreCase = true)) {
+                iterator.remove()
+                changed = true
+            }
+        }
+        if (changed) {
+            prefs.edit().putStringSet(KEY_CREATED_ALBUMS, set).apply()
+        }
     }
 
     var isEqualizerEnabled: Boolean
