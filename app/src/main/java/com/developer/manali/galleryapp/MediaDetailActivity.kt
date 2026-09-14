@@ -850,7 +850,9 @@ class MediaDetailActivity : BaseActivity() {
             openWith(item)
         }
 
-        dialogView.findViewById<View>(R.id.layoutDetailMenuMovetoVault).setOnClickListener {
+        val layoutVault = dialogView.findViewById<View>(R.id.layoutDetailMenuMovetoVault)
+        layoutVault.visibility = View.GONE
+        layoutVault.setOnClickListener {
             dialog.dismiss()
             moveToVault()
         }

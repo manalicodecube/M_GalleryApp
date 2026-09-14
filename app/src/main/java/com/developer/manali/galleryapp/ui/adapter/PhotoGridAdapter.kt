@@ -213,6 +213,13 @@ class PhotoGridAdapter(
             val isFav = com.developer.manali.galleryapp.data.AppPreferences.getInstance(binding.root.context).isFavorite(mediaItem.id)
             binding.ivFavoriteBadge.visibility = if (isFav) android.view.View.VISIBLE else android.view.View.GONE
 
+            if (mediaItem.isVideo) {
+                binding.tvVideoDuration.visibility = android.view.View.VISIBLE
+                binding.tvVideoDuration.text = MediaRepository.formatDuration(mediaItem.duration)
+            } else {
+                binding.tvVideoDuration.visibility = android.view.View.GONE
+            }
+
             if (isSelectionMode) {
                 binding.ivSelectCheck.visibility = android.view.View.VISIBLE
                 binding.ivSelectCheck.setImageResource(
@@ -261,8 +268,10 @@ class PhotoGridAdapter(
 
             binding.tvPhotoName.text = mediaItem.displayName
             val sizeStr = MediaRepository.formatFileSize(mediaItem.size)
+            val durStr = if (mediaItem.isVideo) MediaRepository.formatDuration(mediaItem.duration) else ""
             val dateStr = MediaRepository.formatExactDate(mediaItem.dateAdded)
-            binding.tvPhotoDetails.text = if (dateStr.isNotEmpty()) "$sizeStr • $dateStr" else sizeStr
+            val subDetails = if (durStr.isNotEmpty() && durStr != "0:00") "$sizeStr • $durStr" else sizeStr
+            binding.tvPhotoDetails.text = if (dateStr.isNotEmpty()) "$subDetails • $dateStr" else subDetails
 
             if (isSelectionMode) {
                 binding.ivChevron.visibility = android.view.View.GONE

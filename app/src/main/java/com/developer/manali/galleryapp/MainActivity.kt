@@ -100,6 +100,20 @@ class MainActivity : BaseActivity() {
         openOriginalDeviceCamera()
     }
 
+    private val cameraLauncher = registerForActivityResult(
+        ActivityResultContracts.StartActivityForResult()
+    ) { _ ->
+        scanCameraFilesAndRefresh()
+    }
+
+    private val mediaContentObserver = object : android.database.ContentObserver(android.os.Handler(android.os.Looper.getMainLooper())) {
+        override fun onChange(selfChange: Boolean, uri: Uri?) {
+            super.onChange(selfChange, uri)
+            com.developer.manali.galleryapp.data.MediaRepository.clearCache()
+            refreshAllFragments()
+        }
+    }
+
     private var pendingDirectoriesToCheck: List<String> = emptyList()
     private var pendingAlbumsToDelete: List<com.developer.manali.galleryapp.data.AlbumItem> = emptyList()
     private var isDeletingAlbums: Boolean = false
@@ -217,6 +231,19 @@ class MainActivity : BaseActivity() {
         })
         setupNavigationDrawer()
         loadBigBannerAd()
+
+        try {
+            contentResolver.registerContentObserver(
+                MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
+                true,
+                mediaContentObserver
+            )
+            contentResolver.registerContentObserver(
+                MediaStore.Video.Media.EXTERNAL_CONTENT_URI,
+                true,
+                mediaContentObserver
+            )
+        } catch (_: Exception) {}
     }
 
     private var cachedMediaStats: com.developer.manali.galleryapp.data.MediaStats? = null
@@ -230,6 +257,7 @@ class MainActivity : BaseActivity() {
             currentVideosFragment?.updateGridColumns(appPrefs.gridColumns)
         }
         loadMediaStats()
+        scanCameraFilesAndRefresh()
         refreshAllFragments()
         try {
             val filter = android.content.IntentFilter("com.developer.manali.galleryapp.GRID_COLUMNS_CHANGED")
@@ -279,6 +307,9 @@ class MainActivity : BaseActivity() {
     override fun onDestroy() {
         bannerAdView?.destroy()
         bannerAdView = null
+        try {
+            contentResolver.unregisterContentObserver(mediaContentObserver)
+        } catch (_: Exception) {}
         super.onDestroy()
     }
 
@@ -531,14 +562,57 @@ class MainActivity : BaseActivity() {
     private fun openOriginalDeviceCamera() {
         try {
             val intent = Intent(MediaStore.INTENT_ACTION_STILL_IMAGE_CAMERA)
-            startActivity(intent)
+            cameraLauncher.launch(intent)
         } catch (e: Exception) {
             try {
                 val fallbackIntent = Intent(MediaStore.ACTION_IMAGE_CAPTURE)
-                startActivity(fallbackIntent)
+                cameraLauncher.launch(fallbackIntent)
             } catch (ex: Exception) {
                 Toast.makeText(this,
                     getString(R.string.could_not_open_camera_app), Toast.LENGTH_SHORT).show()
+            }
+        }
+    }
+
+    private fun scanCameraFilesAndRefresh() {
+        lifecycleScope.launch(Dispatchers.IO) {
+            val pathsToScan = mutableListOf<String>()
+            try {
+                val dcimDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DCIM)
+                if (dcimDir.exists() && dcimDir.isDirectory) {
+                    dcimDir.listFiles()?.forEach { file ->
+                        if (file.isFile) {
+                            pathsToScan.add(file.absolutePath)
+                        } else if (file.isDirectory) {
+                            file.listFiles()?.forEach { subFile ->
+                                if (subFile.isFile) pathsToScan.add(subFile.absolutePath)
+                            }
+                        }
+                    }
+                }
+                val picturesDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES)
+                if (picturesDir.exists() && picturesDir.isDirectory) {
+                    picturesDir.listFiles()?.forEach { if (it.isFile) pathsToScan.add(it.absolutePath) }
+                }
+                val moviesDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_MOVIES)
+                if (moviesDir.exists() && moviesDir.isDirectory) {
+                    moviesDir.listFiles()?.forEach { if (it.isFile) pathsToScan.add(it.absolutePath) }
+                }
+            } catch (_: Exception) {}
+
+            if (pathsToScan.isNotEmpty()) {
+                try {
+                    android.media.MediaScannerConnection.scanFile(
+                        this@MainActivity,
+                        pathsToScan.toTypedArray(),
+                        null
+                    ) { _, _ -> }
+                } catch (_: Exception) {}
+            }
+
+            withContext(Dispatchers.Main) {
+                com.developer.manali.galleryapp.data.MediaRepository.clearCache()
+                refreshAllFragments()
             }
         }
     }
@@ -915,14 +989,14 @@ class MainActivity : BaseActivity() {
                 setTabColor(binding.ivTabPhotos, binding.tvTabPhotos, activeColor)
                 binding.tvMainTitle.text =  getString(R.string.photos)
                 binding.btnAddAlbum.visibility = View.GONE
-                binding.btnCamera.visibility = View.GONE
+                binding.btnCamera.visibility = View.VISIBLE
                 binding.btnMenuRight.visibility = View.VISIBLE
             }
             2 -> {
                 setTabColor(binding.ivTabVideos, binding.tvTabVideos, activeColor)
                 binding.tvMainTitle.text = getString(R.string.videos)
                 binding.btnAddAlbum.visibility = View.GONE
-                binding.btnCamera.visibility = View.GONE
+                binding.btnCamera.visibility = View.VISIBLE
                 binding.btnMenuRight.visibility = View.VISIBLE
             }
         }

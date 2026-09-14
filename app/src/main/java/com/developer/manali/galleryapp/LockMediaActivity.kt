@@ -137,8 +137,27 @@ class LockMediaActivity : BaseActivity() {
         val existingMediaManager = binding.rvLockedMedia.layoutManager as? GridLayoutManager
         if (existingMediaManager != null) {
             existingMediaManager.spanCount = span
+            existingMediaManager.spanSizeLookup = object : GridLayoutManager.SpanSizeLookup() {
+                override fun getSpanSize(position: Int): Int {
+                    return if (mediaAdapter.getItemViewType(position) == PhotoGridAdapter.TYPE_HEADER) {
+                        existingMediaManager.spanCount
+                    } else {
+                        1
+                    }
+                }
+            }
         } else {
-            binding.rvLockedMedia.layoutManager = GridLayoutManager(this, span)
+            val mediaLayoutManager = GridLayoutManager(this, span)
+            mediaLayoutManager.spanSizeLookup = object : GridLayoutManager.SpanSizeLookup() {
+                override fun getSpanSize(position: Int): Int {
+                    return if (mediaAdapter.getItemViewType(position) == PhotoGridAdapter.TYPE_HEADER) {
+                        mediaLayoutManager.spanCount
+                    } else {
+                        1
+                    }
+                }
+            }
+            binding.rvLockedMedia.layoutManager = mediaLayoutManager
         }
 
         albumAdapter.setListView(false)
@@ -207,8 +226,17 @@ class LockMediaActivity : BaseActivity() {
 
         binding.rvLockedMedia.setHasFixedSize(true)
         binding.rvLockedMedia.setItemViewCacheSize(25)
-        binding.rvLockedMedia.layoutManager =
-            GridLayoutManager(this, currentSpanCount)
+        val mediaLayoutManager = GridLayoutManager(this, currentSpanCount)
+        mediaLayoutManager.spanSizeLookup = object : GridLayoutManager.SpanSizeLookup() {
+            override fun getSpanSize(position: Int): Int {
+                return if (mediaAdapter.getItemViewType(position) == PhotoGridAdapter.TYPE_HEADER) {
+                    mediaLayoutManager.spanCount
+                } else {
+                    1
+                }
+            }
+        }
+        binding.rvLockedMedia.layoutManager = mediaLayoutManager
         mediaAdapter = PhotoGridAdapter(
             onItemClick = { mediaItem ->
                 if (!isSelectionMode) {
@@ -379,7 +407,16 @@ class LockMediaActivity : BaseActivity() {
                 if (hasMedia) {
                     binding.tvMediaHeader.visibility = View.VISIBLE
                     binding.rvLockedMedia.visibility = View.VISIBLE
-                    val mediaListItems = filteredMedia.map { PhotoListItem.Media(it) }
+                    val mediaListItems = mutableListOf<PhotoListItem>()
+                    var currentHeader = ""
+                    for (item in filteredMedia) {
+                        val headerTitle = item.dateHeader
+                        if (headerTitle.isNotEmpty() && headerTitle != currentHeader) {
+                            currentHeader = headerTitle
+                            mediaListItems.add(PhotoListItem.Header(currentHeader))
+                        }
+                        mediaListItems.add(PhotoListItem.Media(item))
+                    }
                     mediaAdapter.submitList(mediaListItems)
                 } else {
                     binding.tvMediaHeader.visibility = View.GONE

@@ -648,7 +648,9 @@ class VideoDetailActivity : BaseActivity() {
             showVideoInfoDialog()
         }
 
-        dialogView.findViewById<View>(R.id.layoutVideoMenuMoveToVault).setOnClickListener {
+        val layoutVault = dialogView.findViewById<View>(R.id.layoutVideoMenuMoveToVault)
+        layoutVault.visibility = View.GONE
+        layoutVault.setOnClickListener {
             dialog.dismiss()
             moveToVault()
         }

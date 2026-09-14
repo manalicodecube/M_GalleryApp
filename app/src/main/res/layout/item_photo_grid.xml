@@ -30,6 +30,22 @@
         app:layout_constraintBottom_toBottomOf="@id/ivPhoto"
         app:layout_constraintStart_toStartOf="@id/ivPhoto" />
 
+    <TextView
+        android:id="@+id/tvVideoDuration"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="6dp"
+        android:layout_marginBottom="6dp"
+        android:background="@drawable/bg_duration_badge"
+        android:fontFamily="sans-serif-medium"
+        android:paddingHorizontal="6dp"
+        android:paddingVertical="2dp"
+        android:textColor="#FFFFFF"
+        android:textSize="10sp"
+        android:visibility="gone"
+        app:layout_constraintBottom_toBottomOf="@id/ivPhoto"
+        app:layout_constraintEnd_toEndOf="@id/ivPhoto" />
+
     <ImageView
         android:id="@+id/ivSelectCheck"
         android:layout_width="24dp"
