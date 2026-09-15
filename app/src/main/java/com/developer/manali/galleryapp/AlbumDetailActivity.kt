@@ -169,7 +169,7 @@ class AlbumDetailActivity : BaseActivity() {
     private fun setupRecyclerView() {
         val isList = AppPreferences.getInstance(this).isListView
         currentSpanCount = if (isList) 1 else AppPreferences.getInstance(this).gridColumns
-        binding.rvAlbumDetail.setHasFixedSize(true)
+//        binding.rvAlbumDetail.setHasFixedSize(true)
         binding.rvAlbumDetail.setItemViewCacheSize(25)
         binding.rvAlbumDetail.layoutManager = GridLayoutManager(this, currentSpanCount)
         mediaAdapter = AlbumMediaAdapter { mediaItem ->

@@ -158,7 +158,7 @@ class FavoriteActivity : BaseActivity() {
     private fun setupRecyclerView() {
         val isList = AppPreferences.getInstance(this).isListView
         currentSpanCount = if (isList) 1 else AppPreferences.getInstance(this).gridColumns
-        binding.rvFavorites.setHasFixedSize(true)
+//        binding.rvFavorites.setHasFixedSize(true)
         binding.rvFavorites.setItemViewCacheSize(25)
         binding.rvFavorites.layoutManager = GridLayoutManager(this, currentSpanCount)
         mediaAdapter = AlbumMediaAdapter { mediaItem ->
