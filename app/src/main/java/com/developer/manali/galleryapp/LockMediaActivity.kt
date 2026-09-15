@@ -496,11 +496,24 @@ class LockMediaActivity : BaseActivity() {
         dialog.setContentView(dialogView)
 
         val layoutSelect = dialogView.findViewById<View>(R.id.layoutMenuSelect)
+        val dividerSelect = dialogView.findViewById<View>(R.id.dividerMenuSelect)
         val layoutColumns = dialogView.findViewById<View>(R.id.layoutMenuColumns)
+        val dividerColumns = dialogView.findViewById<View>(R.id.dividerMenuColumns)
         val layoutViewType = dialogView.findViewById<View>(R.id.layoutMenuViewType)
         val layoutSortBy = dialogView.findViewById<View>(R.id.layoutMenuSortBy)
 
         layoutSortBy.visibility = View.GONE
+
+        val isListView = AppPreferences.getInstance(this).isListView
+        if (isListView) {
+            layoutColumns.visibility = View.GONE
+            dividerSelect?.visibility = View.GONE
+            dividerColumns?.visibility = View.GONE
+        } else {
+            layoutColumns.visibility = View.VISIBLE
+            dividerSelect?.visibility = View.VISIBLE
+            dividerColumns?.visibility = View.VISIBLE
+        }
 
         layoutSelect.setOnClickListener {
             dialog.dismiss()
@@ -508,15 +521,19 @@ class LockMediaActivity : BaseActivity() {
             updateSelectionHeader()
         }
 
-        layoutColumns.setOnClickListener {
+        val openColumns = View.OnClickListener {
             dialog.dismiss()
             showColumnsDialog()
         }
+        layoutColumns.setOnClickListener(openColumns)
+        dividerSelect?.setOnClickListener(openColumns)
 
-        layoutViewType.setOnClickListener {
+        val openViewType = View.OnClickListener {
             dialog.dismiss()
             showViewTypeDialog()
         }
+        layoutViewType.setOnClickListener(openViewType)
+        dividerColumns?.setOnClickListener(openViewType)
 
         dialog.show()
 

@@ -703,13 +703,14 @@ class MainActivity : BaseActivity() {
         }
 
         layoutSelect.visibility = View.VISIBLE
-        dividerSelect?.visibility = View.GONE
 
         if (isGrid) {
             layoutColumns.visibility = View.VISIBLE
-            dividerColumns?.visibility = View.GONE
+            dividerSelect?.visibility = View.VISIBLE
+            dividerColumns?.visibility = View.VISIBLE
         } else {
             layoutColumns.visibility = View.GONE
+            dividerSelect?.visibility = View.GONE
             dividerColumns?.visibility = View.GONE
         }
 
@@ -718,15 +719,19 @@ class MainActivity : BaseActivity() {
             enterSelectionMode()
         }
 
-        layoutColumns.setOnClickListener {
+        val openColumnsAction = View.OnClickListener {
             dialog.dismiss()
             showColumnsDialog()
         }
+        layoutColumns.setOnClickListener(openColumnsAction)
+        dividerSelect?.setOnClickListener(openColumnsAction)
 
-        dialogView.findViewById<View>(R.id.layoutMenuViewType).setOnClickListener {
+        val openViewTypeAction = View.OnClickListener {
             dialog.dismiss()
             showViewTypeDialog()
         }
+        dialogView.findViewById<View>(R.id.layoutMenuViewType).setOnClickListener(openViewTypeAction)
+        dividerColumns?.setOnClickListener(openViewTypeAction)
 
         dialogView.findViewById<View>(R.id.layoutMenuSortBy).setOnClickListener {
             dialog.dismiss()
