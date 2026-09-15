@@ -179,9 +179,11 @@ class MediaDetailActivity : BaseActivity() {
         get() = mediaPagerAdapter.getItem(binding.viewPagerMediaDetail.currentItem)
 
     private val favoriteIds = HashSet<Long>()
+    private var isFromVault = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        isFromVault = intent.getBooleanExtra("is_from_vault", false)
         enableEdgeToEdge()
         binding = ActivityMediaDetailBinding.inflate(layoutInflater)
         setContentView(binding.root)
@@ -851,10 +853,14 @@ class MediaDetailActivity : BaseActivity() {
         }
 
         val layoutVault = dialogView.findViewById<View>(R.id.layoutDetailMenuMovetoVault)
-        layoutVault.visibility = View.GONE
-        layoutVault.setOnClickListener {
-            dialog.dismiss()
-            moveToVault()
+        if (isFromVault) {
+            layoutVault.visibility = View.GONE
+        } else {
+            layoutVault.visibility = View.VISIBLE
+            layoutVault.setOnClickListener {
+                dialog.dismiss()
+                moveToVault()
+            }
         }
 
         dialog.show()
@@ -1385,6 +1391,7 @@ class MediaDetailActivity : BaseActivity() {
     private fun playVideo(video: MediaItem) {
         val intent = Intent(this, VideoDetailActivity::class.java).apply {
             putExtra("video_item", video)
+            putExtra("is_from_vault", isFromVault)
         }
         startActivity(intent)
     }

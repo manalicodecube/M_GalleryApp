@@ -46,6 +46,7 @@ class VideoDetailActivity : BaseActivity() {
     private val mediaRepository = MediaRepository()
     private val videoList = ArrayList<MediaItem>()
     private var currentPosition: Int = 0
+    private var isFromVault = false
 
     private val currentVideoItem: MediaItem?
         get() = if (currentPosition in 0 until videoList.size) videoList[currentPosition] else null
@@ -116,6 +117,7 @@ class VideoDetailActivity : BaseActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        isFromVault = intent.getBooleanExtra("is_from_vault", false)
 
         enableEdgeToEdge()
         window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
@@ -649,10 +651,14 @@ class VideoDetailActivity : BaseActivity() {
         }
 
         val layoutVault = dialogView.findViewById<View>(R.id.layoutVideoMenuMoveToVault)
-        layoutVault.visibility = View.GONE
-        layoutVault.setOnClickListener {
-            dialog.dismiss()
-            moveToVault()
+        if (isFromVault) {
+            layoutVault.visibility = View.GONE
+        } else {
+            layoutVault.visibility = View.VISIBLE
+            layoutVault.setOnClickListener {
+                dialog.dismiss()
+                moveToVault()
+            }
         }
 
         dialogView.findViewById<View>(R.id.layoutVideoMenuRename).setOnClickListener {

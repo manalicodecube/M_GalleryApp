@@ -54,6 +54,7 @@ class AlbumDetailActivity : BaseActivity() {
     private var bucketId: String = ""
     private var bucketName: String = "Album"
     private var currentSpanCount: Int = 3
+    private var isFromVault = false
 
     private var pendingDirectoriesToCheck: List<String> = emptyList()
 
@@ -120,6 +121,7 @@ class AlbumDetailActivity : BaseActivity() {
 
         bucketId = intent.getStringExtra("bucket_id") ?: ""
         bucketName = intent.getStringExtra("bucket_name") ?: "Album"
+        isFromVault = intent.getBooleanExtra("is_from_vault", false)
 
         binding.tvAlbumDetailTitle.text = bucketName
 
@@ -1046,6 +1048,7 @@ class AlbumDetailActivity : BaseActivity() {
             putExtra("media_uri", mediaItem.uri.toString())
             putExtra("media_name", mediaItem.displayName)
             putExtra("is_video", mediaItem.isVideo)
+            putExtra("is_from_vault", isFromVault)
         }
         startActivity(intent)
     }
@@ -1053,6 +1056,7 @@ class AlbumDetailActivity : BaseActivity() {
     private fun playVideo(video: MediaItem) {
         val intent = Intent(this, VideoDetailActivity::class.java).apply {
             putExtra("video_item", video)
+            putExtra("is_from_vault", isFromVault)
         }
         startActivity(intent)
     }

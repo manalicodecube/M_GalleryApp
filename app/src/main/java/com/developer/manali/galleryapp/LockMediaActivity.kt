@@ -203,6 +203,7 @@ class LockMediaActivity : BaseActivity() {
                         putExtra("bucket_id", album.bucketId)
                         putExtra("bucket_name", album.bucketName)
                         putExtra("item_count", album.itemCount)
+                        putExtra("is_from_vault", true)
                     }
                     startActivity(intent)
                 } else {
@@ -243,6 +244,7 @@ class LockMediaActivity : BaseActivity() {
                     if (mediaItem.isVideo) {
                         val intent = android.content.Intent(this, VideoDetailActivity::class.java).apply {
                             putExtra("video_item", mediaItem)
+                            putExtra("is_from_vault", true)
                         }
                         startActivity(intent)
                     } else {
@@ -253,6 +255,7 @@ class LockMediaActivity : BaseActivity() {
                             putExtra("media_item", mediaItem)
                             putExtra("media_uri", mediaItem.uri.toString())
                             putExtra("media_name", mediaItem.displayName)
+                            putExtra("is_from_vault", true)
                         }
                         startActivity(intent)
                     }
