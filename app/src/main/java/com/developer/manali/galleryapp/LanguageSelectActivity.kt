@@ -82,27 +82,6 @@ class LanguageSelectActivity : BaseActivity() {
         loadBigBannerAd()
     }
 
-    private fun hasRequiredPermissions(): Boolean {
-        return if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
-            val hasImages = androidx.core.content.ContextCompat.checkSelfPermission(
-                this,
-                android.Manifest.permission.READ_MEDIA_IMAGES
-            ) == android.content.pm.PackageManager.PERMISSION_GRANTED
-
-            val hasVideos = androidx.core.content.ContextCompat.checkSelfPermission(
-                this,
-                android.Manifest.permission.READ_MEDIA_VIDEO
-            ) == android.content.pm.PackageManager.PERMISSION_GRANTED
-
-            hasImages && hasVideos
-        } else {
-            androidx.core.content.ContextCompat.checkSelfPermission(
-                this,
-                android.Manifest.permission.READ_EXTERNAL_STORAGE
-            ) == android.content.pm.PackageManager.PERMISSION_GRANTED
-        }
-    }
-
     private fun proceedToNext() {
         if (languageSelectAdapter != null) {
             val arrSelectedList =
@@ -119,7 +98,7 @@ class LanguageSelectActivity : BaseActivity() {
                 PreferencesUtility.getInstance(this@LanguageSelectActivity)
                     .setLanguageSelectionShown(true)
 
-                if (isFromSplash && !hasRequiredPermissions()) {
+                if (!Util.hasRequiredPermissions(this@LanguageSelectActivity)) {
                     val intent = Intent(this@LanguageSelectActivity, PermissionActivity::class.java)
                     intent.flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_NEW_TASK
                     startActivity(intent)
@@ -157,7 +136,7 @@ class LanguageSelectActivity : BaseActivity() {
 
         bannerAdView = AdView(this).apply {
             adUnitId = getString(R.string.admob_banner_big)
-            setAdSize(getBannerAdSize())
+            setAdSize(AdsUtils.getBannerAdSize(this@LanguageSelectActivity))
             adListener = object : AdListener() {
                 override fun onAdLoaded() {
                     super.onAdLoaded()

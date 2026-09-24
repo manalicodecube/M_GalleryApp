@@ -9,8 +9,13 @@ object AdsUtils {
     fun isConnected(context: Context): Boolean {
         return Util.isNetworkAvailable(context)
     }
+
+    fun getBannerAdSize(context: Context): AdSize {
+        val widthDp = (context.resources.displayMetrics.widthPixels / context.resources.displayMetrics.density).toInt()
+        return AdSize.getCurrentOrientationInlineAdaptiveBannerAdSize(context, widthDp)
+    }
 }
 
 fun Context.getBannerAdSize(): AdSize {
-    return AdSize.getCurrentOrientationInlineAdaptiveBannerAdSize(this, getScreenWidthDp())
+    return AdsUtils.getBannerAdSize(this)
 }

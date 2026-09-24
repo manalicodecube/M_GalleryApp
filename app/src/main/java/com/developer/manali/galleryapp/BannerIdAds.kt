@@ -41,7 +41,7 @@ object BannerIdAds {
         AdView(context).apply {
             adUnitId = context.getString(R.string.admob_banner_big)
             Log.d("VVC", "preLoadBanner: " + context.getString(R.string.admob_banner_big))
-            setAdSize(context.getBannerAdSize())
+            setAdSize(AdsUtils.getBannerAdSize(context))
             adListener = object : AdListener() {
                 override fun onAdLoaded() {
                     super.onAdLoaded()

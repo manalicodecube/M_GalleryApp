@@ -58,37 +58,14 @@ class SplashActivity : BaseActivity() {
             intent.putExtra(Constant.IS_FROM_SPLASH, true)
             startActivity(intent)
             finish()
+        } else if (!Util.hasRequiredPermissions(this)) {
+            navigateToPermission()
         } else {
             AppOpenAdsCall.loadAndShowAppOpenAd(this, object : AppOpenAdsCall.AppOpenAdCallback {
                 override fun onAdDismissed() {
-                    if (hasRequiredPermissions()) {
-                        navigateToMain()
-                    } else {
-                        navigateToPermission()
-                    }
+                    navigateToMain()
                 }
             })
-        }
-    }
-
-    private fun hasRequiredPermissions(): Boolean {
-        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            val hasImages = ContextCompat.checkSelfPermission(
-                this,
-                Manifest.permission.READ_MEDIA_IMAGES
-            ) == PackageManager.PERMISSION_GRANTED
-
-            val hasVideos = ContextCompat.checkSelfPermission(
-                this,
-                Manifest.permission.READ_MEDIA_VIDEO
-            ) == PackageManager.PERMISSION_GRANTED
-
-            hasImages && hasVideos
-        } else {
-            ContextCompat.checkSelfPermission(
-                this,
-                Manifest.permission.READ_EXTERNAL_STORAGE
-            ) == PackageManager.PERMISSION_GRANTED
         }
     }
 
