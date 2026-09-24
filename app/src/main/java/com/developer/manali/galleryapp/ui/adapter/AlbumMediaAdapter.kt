@@ -142,8 +142,8 @@ class AlbumMediaAdapter(
 
             val glideRequest = Glide.with(binding.ivAlbumMedia.context)
                 .load(mediaItem.uri)
-                .format(com.bumptech.glide.load.DecodeFormat.PREFER_ARGB_8888)
-                .diskCacheStrategy(DiskCacheStrategy.ALL)
+                .override(350, 350)
+                .diskCacheStrategy(DiskCacheStrategy.AUTOMATIC)
                 .centerCrop()
 
             if (mediaItem.isVideo) {
@@ -212,8 +212,8 @@ class AlbumMediaAdapter(
 
             val glideRequest = Glide.with(binding.ivAlbumMedia.context)
                 .load(mediaItem.uri)
-                .format(com.bumptech.glide.load.DecodeFormat.PREFER_ARGB_8888)
-                .diskCacheStrategy(DiskCacheStrategy.ALL)
+                .override(200, 200)
+                .diskCacheStrategy(DiskCacheStrategy.AUTOMATIC)
                 .centerCrop()
 
             if (mediaItem.isVideo) {

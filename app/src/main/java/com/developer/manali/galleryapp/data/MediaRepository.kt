@@ -362,6 +362,53 @@ class MediaRepository {
             }
         }
 
+        // Also include all user created albums from AppPreferences
+        val createdAlbumNames = appPrefs.getCreatedAlbums()
+        val existingNames = albumsMap.values.map { it.name.lowercase(Locale.US) }.toSet()
+        val existingBucketIds = albumsMap.keys.map { it.lowercase(Locale.US) }.toSet()
+
+        for (createdName in createdAlbumNames) {
+            val lower = createdName.lowercase(Locale.US)
+            if (!existingNames.contains(lower) && !existingBucketIds.contains(lower)) {
+                if (excludeLocked && lockedAlbums.contains(createdName)) {
+                    continue
+                }
+                var diskCount = 0
+                var diskSize = 0L
+                var diskCover: Uri? = null
+                try {
+                    val dir = getAlbumDirectory(context, createdName, createdName)
+                    if (dir.exists() && dir.isDirectory) {
+                        val files = dir.listFiles()
+                        if (files != null) {
+                            for (f in files) {
+                                if (f.isFile) {
+                                    val fl = f.name.lowercase(Locale.US)
+                                    val isImg = fl.endsWith(".jpg") || fl.endsWith(".jpeg") || fl.endsWith(".png") || fl.endsWith(".webp") || fl.endsWith(".gif") || fl.endsWith(".bmp")
+                                    val isVid = fl.endsWith(".mp4") || fl.endsWith(".mkv") || fl.endsWith(".webm") || fl.endsWith(".avi") || fl.endsWith(".mov") || fl.endsWith(".3gp")
+                                    if (isImg || isVid) {
+                                        diskCount++
+                                        diskSize += f.length()
+                                        if (diskCover == null) {
+                                            diskCover = Uri.fromFile(f)
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                } catch (_: Exception) {}
+
+                albumsMap[createdName] = AlbumData(
+                    bucketId = createdName,
+                    name = createdName,
+                    coverUri = diskCover,
+                    count = diskCount,
+                    totalSizeBytes = diskSize
+                )
+            }
+        }
+
         val result = mutableListOf<AlbumItem>()
         for ((_, data) in albumsMap) {
             result.add(
@@ -374,46 +421,6 @@ class MediaRepository {
                 )
             )
         }
-
-        val createdAlbums = appPrefs.getCreatedAlbums()
-        for (createdName in createdAlbums) {
-            val exists = result.any { it.bucketName.equals(createdName, ignoreCase = true) }
-            if (!exists) {
-                if (excludeLocked && (lockedAlbums.contains(createdName) || lockedAlbums.contains(createdName.lowercase()))) {
-                    continue
-                }
-                result.add(
-                    AlbumItem(
-                        bucketId = createdName,
-                        bucketName = createdName,
-                        coverUri = null,
-                        itemCount = 0,
-                        totalSizeBytes = 0L
-                    )
-                )
-            }
-        }
-
-        try {
-            val picturesDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES)
-            val subDirs = picturesDir.listFiles { file -> file.isDirectory }
-            subDirs?.forEach { dir ->
-                val dirName = dir.name
-                if (!dirName.startsWith(".") && !result.any { it.bucketName.equals(dirName, ignoreCase = true) }) {
-                    if (!excludeLocked || (!lockedAlbums.contains(dirName) && !lockedAlbums.contains(dirName.lowercase()))) {
-                        result.add(
-                            AlbumItem(
-                                bucketId = dirName,
-                                bucketName = dirName,
-                                coverUri = null,
-                                itemCount = 0,
-                                totalSizeBytes = 0L
-                            )
-                        )
-                    }
-                }
-            }
-        } catch (_: Exception) {}
 
         result.sortByDescending { it.itemCount }
         if (excludeLocked) {
@@ -441,64 +448,66 @@ class MediaRepository {
             MediaStore.Images.Media.BUCKET_DISPLAY_NAME
         )
 
-        val imgSelection = "${MediaStore.Images.Media.BUCKET_ID} = ? OR ${MediaStore.Images.Media.BUCKET_DISPLAY_NAME} = ?"
-        val imgArgs = arrayOf(bucketId, bucketName)
+        val imgSelection = "${MediaStore.Images.Media.BUCKET_ID} = ? OR ${MediaStore.Images.Media.BUCKET_DISPLAY_NAME} = ? OR ${MediaStore.Images.Media.DATA} LIKE ?"
+        val imgArgs = arrayOf(bucketId, bucketName, "%/$bucketName/%")
 
-        val imgCursor = context.contentResolver.query(
-            MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
-            imgProjection,
-            imgSelection,
-            imgArgs,
-            "${MediaStore.Images.Media.DATE_ADDED} DESC"
-        )
+        try {
+            val imgCursor = context.contentResolver.query(
+                MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
+                imgProjection,
+                imgSelection,
+                imgArgs,
+                "${MediaStore.Images.Media.DATE_ADDED} DESC"
+            )
 
-        imgCursor?.use {
-            val idCol = it.getColumnIndexOrThrow(MediaStore.Images.Media._ID)
-            val nameCol = it.getColumnIndexOrThrow(MediaStore.Images.Media.DISPLAY_NAME)
-            val mimeCol = it.getColumnIndexOrThrow(MediaStore.Images.Media.MIME_TYPE)
-            val sizeCol = it.getColumnIndexOrThrow(MediaStore.Images.Media.SIZE)
-            val dateCol = it.getColumnIndexOrThrow(MediaStore.Images.Media.DATE_ADDED)
-            val dataCol = it.getColumnIndex(MediaStore.Images.Media.DATA)
-            val bIdCol = it.getColumnIndex(MediaStore.Images.Media.BUCKET_ID)
-            val bNameCol = it.getColumnIndex(MediaStore.Images.Media.BUCKET_DISPLAY_NAME)
+            imgCursor?.use {
+                val idCol = it.getColumnIndexOrThrow(MediaStore.Images.Media._ID)
+                val nameCol = it.getColumnIndexOrThrow(MediaStore.Images.Media.DISPLAY_NAME)
+                val mimeCol = it.getColumnIndexOrThrow(MediaStore.Images.Media.MIME_TYPE)
+                val sizeCol = it.getColumnIndexOrThrow(MediaStore.Images.Media.SIZE)
+                val dateCol = it.getColumnIndexOrThrow(MediaStore.Images.Media.DATE_ADDED)
+                val dataCol = it.getColumnIndex(MediaStore.Images.Media.DATA)
+                val bIdCol = it.getColumnIndex(MediaStore.Images.Media.BUCKET_ID)
+                val bNameCol = it.getColumnIndex(MediaStore.Images.Media.BUCKET_DISPLAY_NAME)
 
-            while (it.moveToNext()) {
-                val id = it.getLong(idCol)
-                val name = it.getString(nameCol) ?: "IMG_$id"
-                val mime = it.getString(mimeCol) ?: "image/jpeg"
-                var size = it.getLong(sizeCol)
-                var dateAdded = it.getLong(dateCol)
-                val path = if (dataCol != -1) it.getString(dataCol) ?: "" else ""
-                val bId = if (bIdCol != -1) it.getString(bIdCol) ?: "" else ""
-                val bName = if (bNameCol != -1) it.getString(bNameCol) ?: "Album" else "Album"
- 
-                if (lockedAlbums.contains(bId) || lockedMedia.contains(id.toString())) {
-                    continue
-                }
+                while (it.moveToNext()) {
+                    val id = it.getLong(idCol)
+                    val name = it.getString(nameCol) ?: "IMG_$id"
+                    val mime = it.getString(mimeCol) ?: "image/jpeg"
+                    var size = it.getLong(sizeCol)
+                    var dateAdded = it.getLong(dateCol)
+                    val path = if (dataCol != -1) it.getString(dataCol) ?: "" else ""
+                    val bId = if (bIdCol != -1) it.getString(bIdCol) ?: "" else ""
+                    val bName = if (bNameCol != -1) it.getString(bNameCol) ?: bucketName else bucketName
 
-                if (size <= 0L) size = 1L
-                if (dateAdded <= 0L) dateAdded = System.currentTimeMillis() / 1000L
+                    if (lockedAlbums.contains(bId) || lockedMedia.contains(id.toString())) {
+                        continue
+                    }
 
-                val uri = ContentUris.withAppendedId(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, id)
+                    if (size <= 0L) size = 1L
+                    if (dateAdded <= 0L) dateAdded = System.currentTimeMillis() / 1000L
 
-                mediaList.add(
-                    MediaItem(
-                        id = id,
-                        uri = uri,
-                        path = path.ifEmpty { uri.toString() },
-                        displayName = name,
-                        mimeType = mime,
-                        size = size,
-                        dateAdded = dateAdded,
-                        isVideo = false,
-                        duration = 0L,
-                        bucketId = bId,
-                        bucketName = bName,
-                        dateHeader = formatToDateHeader(dateAdded)
+                    val uri = ContentUris.withAppendedId(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, id)
+
+                    mediaList.add(
+                        MediaItem(
+                            id = id,
+                            uri = uri,
+                            path = path.ifEmpty { uri.toString() },
+                            displayName = name,
+                            mimeType = mime,
+                            size = size,
+                            dateAdded = dateAdded,
+                            isVideo = false,
+                            duration = 0L,
+                            bucketId = bId,
+                            bucketName = bName,
+                            dateHeader = formatToDateHeader(dateAdded)
+                        )
                     )
-                )
+                }
             }
-        }
+        } catch (_: Exception) {}
 
         val vidProjection = arrayOf(
             MediaStore.Video.Media._ID,
@@ -512,108 +521,132 @@ class MediaRepository {
             MediaStore.Video.Media.BUCKET_DISPLAY_NAME
         )
 
-        val vidSelection = "${MediaStore.Video.Media.BUCKET_ID} = ? OR ${MediaStore.Video.Media.BUCKET_DISPLAY_NAME} = ?"
-        val vidArgs = arrayOf(bucketId, bucketName)
+        val vidSelection = "${MediaStore.Video.Media.BUCKET_ID} = ? OR ${MediaStore.Video.Media.BUCKET_DISPLAY_NAME} = ? OR ${MediaStore.Video.Media.DATA} LIKE ?"
+        val vidArgs = arrayOf(bucketId, bucketName, "%/$bucketName/%")
 
-        val vidCursor = context.contentResolver.query(
-            MediaStore.Video.Media.EXTERNAL_CONTENT_URI,
-            vidProjection,
-            vidSelection,
-            vidArgs,
-            "${MediaStore.Video.Media.DATE_ADDED} DESC"
-        )
+        try {
+            val vidCursor = context.contentResolver.query(
+                MediaStore.Video.Media.EXTERNAL_CONTENT_URI,
+                vidProjection,
+                vidSelection,
+                vidArgs,
+                "${MediaStore.Video.Media.DATE_ADDED} DESC"
+            )
 
-        vidCursor?.use {
-            val idCol = it.getColumnIndexOrThrow(MediaStore.Video.Media._ID)
-            val nameCol = it.getColumnIndexOrThrow(MediaStore.Video.Media.DISPLAY_NAME)
-            val mimeCol = it.getColumnIndexOrThrow(MediaStore.Video.Media.MIME_TYPE)
-            val sizeCol = it.getColumnIndexOrThrow(MediaStore.Video.Media.SIZE)
-            val dateCol = it.getColumnIndexOrThrow(MediaStore.Video.Media.DATE_ADDED)
-            val durCol = it.getColumnIndexOrThrow(MediaStore.Video.Media.DURATION)
-            val dataCol = it.getColumnIndex(MediaStore.Video.Media.DATA)
-            val bIdCol = it.getColumnIndex(MediaStore.Video.Media.BUCKET_ID)
-            val bNameCol = it.getColumnIndex(MediaStore.Video.Media.BUCKET_DISPLAY_NAME)
+            vidCursor?.use {
+                val idCol = it.getColumnIndexOrThrow(MediaStore.Video.Media._ID)
+                val nameCol = it.getColumnIndexOrThrow(MediaStore.Video.Media.DISPLAY_NAME)
+                val mimeCol = it.getColumnIndexOrThrow(MediaStore.Video.Media.MIME_TYPE)
+                val sizeCol = it.getColumnIndexOrThrow(MediaStore.Video.Media.SIZE)
+                val dateCol = it.getColumnIndexOrThrow(MediaStore.Video.Media.DATE_ADDED)
+                val durCol = it.getColumnIndexOrThrow(MediaStore.Video.Media.DURATION)
+                val dataCol = it.getColumnIndex(MediaStore.Video.Media.DATA)
+                val bIdCol = it.getColumnIndex(MediaStore.Video.Media.BUCKET_ID)
+                val bNameCol = it.getColumnIndex(MediaStore.Video.Media.BUCKET_DISPLAY_NAME)
 
-            while (it.moveToNext()) {
-                val id = it.getLong(idCol)
-                val name = it.getString(nameCol) ?: "VID_$id"
-                val mime = it.getString(mimeCol) ?: "video/mp4"
-                var size = it.getLong(sizeCol)
-                var dateAdded = it.getLong(dateCol)
-                val duration = it.getLong(durCol)
-                val path = if (dataCol != -1) it.getString(dataCol) ?: "" else ""
-                val bId = if (bIdCol != -1) it.getString(bIdCol) ?: "" else ""
-                val bName = if (bNameCol != -1) it.getString(bNameCol) ?: "Album" else "Album"
+                while (it.moveToNext()) {
+                    val id = it.getLong(idCol)
+                    val name = it.getString(nameCol) ?: "VID_$id"
+                    val mime = it.getString(mimeCol) ?: "video/mp4"
+                    var size = it.getLong(sizeCol)
+                    var dateAdded = it.getLong(dateCol)
+                    val duration = it.getLong(durCol)
+                    val path = if (dataCol != -1) it.getString(dataCol) ?: "" else ""
+                    val bId = if (bIdCol != -1) it.getString(bIdCol) ?: "" else ""
+                    val bName = if (bNameCol != -1) it.getString(bNameCol) ?: bucketName else bucketName
 
-                if (lockedAlbums.contains(bId) || lockedMedia.contains(id.toString())) {
-                    continue
-                }
+                    if (lockedAlbums.contains(bId) || lockedMedia.contains(id.toString())) {
+                        continue
+                    }
 
-                if (size <= 0L) size = 1L
-                if (dateAdded <= 0L) dateAdded = System.currentTimeMillis() / 1000L
+                    if (size <= 0L) size = 1L
+                    if (dateAdded <= 0L) dateAdded = System.currentTimeMillis() / 1000L
 
-                val uri = ContentUris.withAppendedId(MediaStore.Video.Media.EXTERNAL_CONTENT_URI, id)
+                    val uri = ContentUris.withAppendedId(MediaStore.Video.Media.EXTERNAL_CONTENT_URI, id)
 
-                mediaList.add(
-                    MediaItem(
-                        id = id,
-                        uri = uri,
-                        path = path.ifEmpty { uri.toString() },
-                        displayName = name,
-                        mimeType = mime,
-                        size = size,
-                        dateAdded = dateAdded,
-                        isVideo = true,
-                        duration = duration,
-                        bucketId = bId,
-                        bucketName = bName,
-                        dateHeader = formatToDateHeader(dateAdded)
+                    mediaList.add(
+                        MediaItem(
+                            id = id,
+                            uri = uri,
+                            path = path.ifEmpty { uri.toString() },
+                            displayName = name,
+                            mimeType = mime,
+                            size = size,
+                            dateAdded = dateAdded,
+                            isVideo = true,
+                            duration = duration,
+                            bucketId = bId,
+                            bucketName = bName,
+                            dateHeader = formatToDateHeader(dateAdded)
+                        )
                     )
-                )
+                }
             }
-        }
+        } catch (_: Exception) {}
 
-        val albumDir = getAlbumDirectory(context, bucketId, bucketName)
+        // Supplementary check: add from cached or queried photos & videos if not already in list
+        val existingIds = mediaList.map { it.id }.toSet()
+        val allPhotos = getPhotos(context)
+        val allVideos = getVideos(context)
+        val allCombined = allPhotos + allVideos
 
-        if (albumDir.exists() && albumDir.isDirectory) {
-            val existingPaths = mediaList.map { it.path }.toSet()
-            val files = albumDir.listFiles()
-            if (files != null) {
-                for (f in files) {
-                    if (f.isFile && !existingPaths.contains(f.absolutePath)) {
-                        val name = f.name
-                        val lower = name.lowercase(java.util.Locale.US)
-                        val isImage = lower.endsWith(".jpg") || lower.endsWith(".jpeg") || lower.endsWith(".png") || lower.endsWith(".gif") || lower.endsWith(".webp") || lower.endsWith(".bmp")
-                        val isVideo = lower.endsWith(".mp4") || lower.endsWith(".mkv") || lower.endsWith(".webm") || lower.endsWith(".avi")
-                        if (isImage || isVideo) {
-                            val hashId = f.absolutePath.hashCode().toLong()
-                            if (lockedMedia.contains(hashId.toString())) continue
+        for (item in allCombined) {
+            if (!existingIds.contains(item.id)) {
+                val isMatch = item.bucketId.equals(bucketId, ignoreCase = true) ||
+                        item.bucketName.equals(bucketName, ignoreCase = true) ||
+                        item.bucketName.equals(bucketId, ignoreCase = true) ||
+                        (bucketName.isNotEmpty() && item.path.contains("/$bucketName/", ignoreCase = true))
 
-                            val fileSize = f.length()
-                            if (fileSize <= 0L) continue
-
-                            val mime = if (isImage) "image/*" else "video/*"
-                            mediaList.add(
-                                MediaItem(
-                                    id = f.absolutePath.hashCode().toLong(),
-                                    uri = Uri.fromFile(f),
-                                    path = f.absolutePath,
-                                    displayName = name,
-                                    mimeType = mime,
-                                    size = f.length(),
-                                    dateAdded = f.lastModified() / 1000L,
-                                    isVideo = isVideo,
-                                    duration = 0L,
-                                    bucketId = bucketId,
-                                    bucketName = bucketName,
-                                    dateHeader = formatToDateHeader(f.lastModified() / 1000L)
-                                )
-                            )
-                        }
+                if (isMatch) {
+                    if (!lockedAlbums.contains(item.bucketId) && !lockedMedia.contains(item.id.toString())) {
+                        mediaList.add(item)
                     }
                 }
             }
         }
+
+        try {
+            val albumDir = getAlbumDirectory(context, bucketId, bucketName)
+            if (albumDir.exists() && albumDir.isDirectory) {
+                val existingPaths = mediaList.map { it.path }.toSet()
+                val files = albumDir.listFiles()
+                if (files != null) {
+                    for (f in files) {
+                        if (f.isFile && !existingPaths.contains(f.absolutePath)) {
+                            val name = f.name
+                            val lower = name.lowercase(java.util.Locale.US)
+                            val isImage = lower.endsWith(".jpg") || lower.endsWith(".jpeg") || lower.endsWith(".png") || lower.endsWith(".gif") || lower.endsWith(".webp") || lower.endsWith(".bmp")
+                            val isVideo = lower.endsWith(".mp4") || lower.endsWith(".mkv") || lower.endsWith(".webm") || lower.endsWith(".avi") || lower.endsWith(".mov") || lower.endsWith(".3gp")
+                            if (isImage || isVideo) {
+                                val hashId = f.absolutePath.hashCode().toLong()
+                                if (lockedMedia.contains(hashId.toString())) continue
+
+                                val fileSize = f.length()
+                                if (fileSize <= 0L) continue
+
+                                val mime = if (isImage) "image/*" else "video/*"
+                                mediaList.add(
+                                    MediaItem(
+                                        id = hashId,
+                                        uri = Uri.fromFile(f),
+                                        path = f.absolutePath,
+                                        displayName = name,
+                                        mimeType = mime,
+                                        size = fileSize,
+                                        dateAdded = f.lastModified() / 1000L,
+                                        isVideo = isVideo,
+                                        duration = 0L,
+                                        bucketId = bucketId,
+                                        bucketName = bucketName,
+                                        dateHeader = formatToDateHeader(f.lastModified() / 1000L)
+                                    )
+                                )
+                            }
+                        }
+                    }
+                }
+            }
+        } catch (_: Exception) {}
 
         mediaList.sortByDescending { it.dateAdded }
         mediaList

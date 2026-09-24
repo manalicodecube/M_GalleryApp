@@ -131,12 +131,21 @@ class AlbumAdapter(
 
             if (album.isHidden) {
                 binding.layoutHiddenContainer.visibility = View.VISIBLE
-                binding.ivAlbumCover.visibility = View.INVISIBLE
+                binding.layoutEmptyFolderContainer.visibility = View.GONE
+                binding.ivAlbumCover.visibility = View.GONE
                 binding.ivFavoriteBadge.visibility = View.GONE
                 binding.tvAlbumCount.text = "Locked"
-            } else {
+            } else if (album.coverUri != null) {
                 binding.layoutHiddenContainer.visibility = View.GONE
+                binding.layoutEmptyFolderContainer.visibility = View.GONE
                 binding.ivAlbumCover.visibility = View.VISIBLE
+
+                Glide.with(binding.ivAlbumCover.context)
+                    .load(album.coverUri)
+                    .override(400, 400)
+                    .diskCacheStrategy(DiskCacheStrategy.AUTOMATIC)
+                    .centerCrop()
+                    .into(binding.ivAlbumCover)
 
                 val formattedCount = NumberFormat.getNumberInstance(Locale.US).format(album.itemCount)
                 val countStr = if (album.itemCount == 1) "1 Item" else "$formattedCount Items"
@@ -148,22 +157,21 @@ class AlbumAdapter(
                 } else {
                     binding.ivFavoriteBadge.visibility = View.GONE
                 }
+            } else {
+                binding.layoutHiddenContainer.visibility = View.GONE
+                binding.layoutEmptyFolderContainer.visibility = View.VISIBLE
+                binding.ivAlbumCover.visibility = View.GONE
+                Glide.with(binding.ivAlbumCover.context).clear(binding.ivAlbumCover)
 
-                if (album.coverUri != null) {
-                    binding.ivAlbumCover.setPadding(0, 0, 0, 0)
-                    binding.ivAlbumCover.scaleType = android.widget.ImageView.ScaleType.CENTER_CROP
-                    Glide.with(binding.ivAlbumCover.context)
-                        .load(album.coverUri)
-                        .override(300, 300)
-                        .diskCacheStrategy(DiskCacheStrategy.AUTOMATIC)
-                        .centerCrop()
-                        .into(binding.ivAlbumCover)
+                val formattedCount = NumberFormat.getNumberInstance(Locale.US).format(album.itemCount)
+                val countStr = if (album.itemCount == 1) "1 Item" else "$formattedCount Items"
+                val sizeStr = MediaRepository.formatFileSize(album.totalSizeBytes)
+                binding.tvAlbumCount.text = "$countStr • $sizeStr"
+
+                if (album.isFavorites) {
+                    binding.ivFavoriteBadge.visibility = View.VISIBLE
                 } else {
-                    Glide.with(binding.ivAlbumCover.context).clear(binding.ivAlbumCover)
-                    val pad = (binding.root.resources.displayMetrics.density * 28).toInt()
-                    binding.ivAlbumCover.setPadding(pad, pad, pad, pad)
-                    binding.ivAlbumCover.scaleType = android.widget.ImageView.ScaleType.FIT_CENTER
-                    binding.ivAlbumCover.setImageResource(com.developer.manali.galleryapp.R.drawable.folder)
+                    binding.ivFavoriteBadge.visibility = View.GONE
                 }
             }
 
@@ -213,12 +221,21 @@ class AlbumAdapter(
 
             if (album.isHidden) {
                 binding.layoutHiddenContainer.visibility = View.VISIBLE
-                binding.ivAlbumCover.visibility = View.INVISIBLE
+                binding.layoutEmptyFolderContainer.visibility = View.GONE
+                binding.ivAlbumCover.visibility = View.GONE
                 binding.ivFavoriteBadge.visibility = View.GONE
                 binding.tvAlbumCount.text = "Locked"
-            } else {
+            } else if (album.coverUri != null) {
                 binding.layoutHiddenContainer.visibility = View.GONE
+                binding.layoutEmptyFolderContainer.visibility = View.GONE
                 binding.ivAlbumCover.visibility = View.VISIBLE
+
+                Glide.with(binding.ivAlbumCover.context)
+                    .load(album.coverUri)
+                    .override(300, 300)
+                    .diskCacheStrategy(DiskCacheStrategy.AUTOMATIC)
+                    .centerCrop()
+                    .into(binding.ivAlbumCover)
 
                 val formattedCount = NumberFormat.getNumberInstance(Locale.US).format(album.itemCount)
                 val countStr = if (album.itemCount == 1) "1 Item" else "$formattedCount Items"
@@ -230,22 +247,21 @@ class AlbumAdapter(
                 } else {
                     binding.ivFavoriteBadge.visibility = View.GONE
                 }
+            } else {
+                binding.layoutHiddenContainer.visibility = View.GONE
+                binding.layoutEmptyFolderContainer.visibility = View.VISIBLE
+                binding.ivAlbumCover.visibility = View.GONE
+                Glide.with(binding.ivAlbumCover.context).clear(binding.ivAlbumCover)
 
-                if (album.coverUri != null) {
-                    binding.ivAlbumCover.setPadding(0, 0, 0, 0)
-                    binding.ivAlbumCover.scaleType = android.widget.ImageView.ScaleType.CENTER_CROP
-                    Glide.with(binding.ivAlbumCover.context)
-                        .load(album.coverUri)
-                        .override(300, 300)
-                        .diskCacheStrategy(DiskCacheStrategy.AUTOMATIC)
-                        .centerCrop()
-                        .into(binding.ivAlbumCover)
+                val formattedCount = NumberFormat.getNumberInstance(Locale.US).format(album.itemCount)
+                val countStr = if (album.itemCount == 1) "1 Item" else "$formattedCount Items"
+                val sizeStr = MediaRepository.formatFileSize(album.totalSizeBytes)
+                binding.tvAlbumCount.text = "$countStr • $sizeStr"
+
+                if (album.isFavorites) {
+                    binding.ivFavoriteBadge.visibility = View.VISIBLE
                 } else {
-                    Glide.with(binding.ivAlbumCover.context).clear(binding.ivAlbumCover)
-                    val pad = (binding.root.resources.displayMetrics.density * 12).toInt()
-                    binding.ivAlbumCover.setPadding(pad, pad, pad, pad)
-                    binding.ivAlbumCover.scaleType = android.widget.ImageView.ScaleType.FIT_CENTER
-                    binding.ivAlbumCover.setImageResource(com.developer.manali.galleryapp.R.drawable.folder)
+                    binding.ivFavoriteBadge.visibility = View.GONE
                 }
             }
 

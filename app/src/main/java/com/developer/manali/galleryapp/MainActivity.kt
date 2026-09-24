@@ -250,15 +250,12 @@ class MainActivity : BaseActivity() {
 
     override fun onResume() {
         super.onResume()
-        com.developer.manali.galleryapp.data.MediaRepository.clearCache()
         val appPrefs = AppPreferences.getInstance(this)
         if (!appPrefs.isListView) {
             currentPhotosFragment?.updateGridColumns(appPrefs.gridColumns)
             currentVideosFragment?.updateGridColumns(appPrefs.gridColumns)
         }
         loadMediaStats()
-        scanCameraFilesAndRefresh()
-        refreshAllFragments()
         try {
             val filter = android.content.IntentFilter("com.developer.manali.galleryapp.GRID_COLUMNS_CHANGED")
             if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
@@ -358,15 +355,27 @@ class MainActivity : BaseActivity() {
 
     private fun setupBottomNav() {
         binding.tabAlbums.setOnClickListener {
-            binding.viewPagerMain.currentItem = 0
+            if (isSelectionMode) {
+                exitSelectionMode()
+            }
+            binding.viewPagerMain.setCurrentItem(0, false)
+            updateTabState(0)
         }
 
         binding.tabPhotos.setOnClickListener {
-            binding.viewPagerMain.currentItem = 1
+            if (isSelectionMode) {
+                exitSelectionMode()
+            }
+            binding.viewPagerMain.setCurrentItem(1, false)
+            updateTabState(1)
         }
 
         binding.tabVideos.setOnClickListener {
-            binding.viewPagerMain.currentItem = 2
+            if (isSelectionMode) {
+                exitSelectionMode()
+            }
+            binding.viewPagerMain.setCurrentItem(2, false)
+            updateTabState(2)
         }
     }
 

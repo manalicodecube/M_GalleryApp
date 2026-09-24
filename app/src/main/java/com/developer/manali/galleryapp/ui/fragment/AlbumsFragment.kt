@@ -151,6 +151,9 @@ class AlbumsFragment : Fragment() {
         val effectiveType = viewType ?: prefs.albumsViewType
         val isList = effectiveType == com.developer.manali.galleryapp.data.AppPreferences.VIEW_TYPE_LIST
         val span = if (isList) 1 else prefs.albumsGridColumns
+        if (lastAppliedSpan == span && lastAppliedIsList == isList) {
+            return
+        }
         if (_binding != null && ::albumAdapter.isInitialized) {
             val savedState = binding.rvAlbums.layoutManager?.onSaveInstanceState()
             lastAppliedSpan = span
@@ -357,7 +360,7 @@ class AlbumsFragment : Fragment() {
             if (albumAdapter.itemCount == 0 && !mediaRepository.hasCachedAlbums()) {
                 binding.progressAlbums.visibility = View.VISIBLE
             }
-            val sortedAlbums = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Default) {
+            val sortedAlbums: List<AlbumItem> = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Default) {
                 val rawAlbums = mediaRepository.getAlbums(safeContext)
                 val appPrefs = com.developer.manali.galleryapp.data.AppPreferences.getInstance(safeContext)
                 val lockedIds = appPrefs.getLockedAlbumIds()
@@ -366,9 +369,9 @@ class AlbumsFragment : Fragment() {
                 val sortBy = appPrefs.albumsSortBy
                 when (sortBy) {
                     com.developer.manali.galleryapp.data.AppPreferences.SORT_NAME_ASC ->
-                        filteredRawAlbums.sortedWith(compareBy(String.CASE_INSENSITIVE_ORDER) { it.bucketName })
+                        filteredRawAlbums.sortedWith(compareBy<AlbumItem, String>(String.CASE_INSENSITIVE_ORDER) { it.bucketName })
                     com.developer.manali.galleryapp.data.AppPreferences.SORT_NAME_DESC ->
-                        filteredRawAlbums.sortedWith(compareByDescending(String.CASE_INSENSITIVE_ORDER) { it.bucketName })
+                        filteredRawAlbums.sortedWith(compareByDescending<AlbumItem, String>(String.CASE_INSENSITIVE_ORDER) { it.bucketName })
                     com.developer.manali.galleryapp.data.AppPreferences.SORT_OLDEST ->
                         filteredRawAlbums.sortedWith(compareBy<AlbumItem> { it.itemCount }.thenBy { it.bucketName })
                     else ->
@@ -376,13 +379,17 @@ class AlbumsFragment : Fragment() {
                 }
             }
 
-            allAlbums.clear()
-            allAlbums.addAll(sortedAlbums)
+            if (allAlbums != sortedAlbums) {
+                allAlbums.clear()
+                allAlbums.addAll(sortedAlbums)
+                if (_binding != null) {
+                    filterAlbums(currentSearchQuery)
+                }
+            }
 
             if (_binding != null) {
                 binding.progressAlbums.visibility = View.GONE
                 binding.swipeRefreshAlbums.isRefreshing = false
-                filterAlbums(currentSearchQuery)
             }
         }
     }
