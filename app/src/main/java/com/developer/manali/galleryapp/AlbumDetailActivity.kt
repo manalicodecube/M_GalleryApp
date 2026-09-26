@@ -175,6 +175,7 @@ class AlbumDetailActivity : BaseActivity() {
         binding.rvAlbumDetail.setItemViewCacheSize(25)
         binding.rvAlbumDetail.layoutManager = GridLayoutManager(this, currentSpanCount)
         mediaAdapter = AlbumMediaAdapter { mediaItem ->
+            if (AdCounter.isProcessingAd) return@AlbumMediaAdapter
             val clickAction = {
                 if (mediaItem.isVideo) {
                     playVideo(mediaItem)
@@ -187,6 +188,7 @@ class AlbumDetailActivity : BaseActivity() {
                     this,
                     object : InterstitialAdCallback {
                         override fun onAdClose() {
+                            AdCounter.onAdFinished()
                             clickAction()
                         }
                     }

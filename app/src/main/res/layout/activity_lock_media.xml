@@ -63,6 +63,7 @@
             android:src="@drawable/select"
             android:visibility="gone"
             app:layout_constraintEnd_toStartOf="@+id/btnMenuLockMedia"
+            app:layout_goneMarginEnd="0dp"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintTop_toTopOf="parent"
             app:tint="@color/lumina_text_title" />
@@ -75,6 +76,7 @@
             android:contentDescription="Menu"
             android:padding="8dp"
             android:src="@drawable/menu"
+            android:visibility="gone"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintTop_toTopOf="parent"

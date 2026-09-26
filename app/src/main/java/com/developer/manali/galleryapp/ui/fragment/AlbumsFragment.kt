@@ -85,6 +85,7 @@ class AlbumsFragment : Fragment() {
 
         albumAdapter = AlbumAdapter(
             onAlbumClick = { album ->
+                if (com.developer.manali.galleryapp.AdCounter.isProcessingAd) return@AlbumAdapter
                 if (album.isHidden) {
                     Toast.makeText(requireContext(),
                         getString(R.string.hidden_album_is_locked), Toast.LENGTH_SHORT).show()
@@ -102,6 +103,7 @@ class AlbumsFragment : Fragment() {
                             requireActivity(),
                             object : com.developer.manali.galleryapp.InterstitialAdCallback {
                                 override fun onAdClose() {
+                                    com.developer.manali.galleryapp.AdCounter.onAdFinished()
                                     clickAction()
                                 }
                             }

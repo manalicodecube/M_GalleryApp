@@ -101,6 +101,7 @@ class PhotosFragment : Fragment() {
 
         photoAdapter = PhotoGridAdapter(
             onItemClick = { mediaItem ->
+                if (com.developer.manali.galleryapp.AdCounter.isProcessingAd) return@PhotoGridAdapter
                 val clickAction = {
                     openMediaDetail(mediaItem)
                 }
@@ -109,6 +110,7 @@ class PhotosFragment : Fragment() {
                         requireActivity(),
                         object : com.developer.manali.galleryapp.InterstitialAdCallback {
                             override fun onAdClose() {
+                                com.developer.manali.galleryapp.AdCounter.onAdFinished()
                                 clickAction()
                             }
                         }

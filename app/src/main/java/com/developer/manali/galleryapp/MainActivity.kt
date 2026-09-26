@@ -231,6 +231,7 @@ class MainActivity : BaseActivity() {
         })
         setupNavigationDrawer()
         loadBigBannerAd()
+        GoogleInterstitialAdsCall.preloadInterstitial(this)
 
         try {
             contentResolver.registerContentObserver(
@@ -250,6 +251,9 @@ class MainActivity : BaseActivity() {
 
     override fun onResume() {
         super.onResume()
+        if (!AdCounter.hasShownAd) {
+            GoogleInterstitialAdsCall.preloadInterstitial(this)
+        }
         val appPrefs = AppPreferences.getInstance(this)
         if (!appPrefs.isListView) {
             currentPhotosFragment?.updateGridColumns(appPrefs.gridColumns)

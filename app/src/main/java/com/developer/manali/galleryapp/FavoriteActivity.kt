@@ -327,9 +327,13 @@ class FavoriteActivity : BaseActivity() {
             if (favoriteMediaItems.isEmpty()) {
                 binding.layoutEmptyFavorite.visibility = View.VISIBLE
                 binding.rvFavorites.visibility = View.GONE
+                binding.btnMenuFavorite.visibility = View.GONE
             } else {
                 binding.layoutEmptyFavorite.visibility = View.GONE
                 binding.rvFavorites.visibility = View.VISIBLE
+                if (!isSelectionMode) {
+                    binding.btnMenuFavorite.visibility = View.VISIBLE
+                }
                 mediaAdapter.submitList(favoriteMediaItems)
             }
         }
@@ -378,7 +382,7 @@ class FavoriteActivity : BaseActivity() {
 
         binding.btnBackFavorite.setImageResource(R.drawable.arrowback)
         binding.btnSelectAllFavorite.visibility = View.GONE
-        binding.btnMenuFavorite.visibility = View.VISIBLE
+        binding.btnMenuFavorite.visibility = if (favoriteMediaItems.isNotEmpty()) View.VISIBLE else View.GONE
         binding.tvFavoriteTitle.text = getString(R.string.favorite)
 
         binding.selectionBottomBarContainer.visibility = View.GONE

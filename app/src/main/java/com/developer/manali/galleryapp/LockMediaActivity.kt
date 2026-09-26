@@ -395,8 +395,12 @@ class LockMediaActivity : BaseActivity() {
                 binding.rvLockedAlbums.visibility = View.GONE
                 binding.tvMediaHeader.visibility = View.GONE
                 binding.rvLockedMedia.visibility = View.GONE
+                binding.btnMenuLockMedia.visibility = View.GONE
             } else {
                 binding.layoutEmptyVault.visibility = View.GONE
+                if (!isSelectionMode) {
+                    binding.btnMenuLockMedia.visibility = View.VISIBLE
+                }
 
                 if (hasAlbums) {
                     binding.tvAlbumsHeader.visibility = View.VISIBLE
@@ -450,7 +454,8 @@ class LockMediaActivity : BaseActivity() {
 
         binding.btnBackLockMedia.setImageResource(R.drawable.arrowback)
         binding.btnSelectAllLockMedia.visibility = View.GONE
-        binding.btnMenuLockMedia.visibility = View.VISIBLE
+        val hasItems = albumAdapter.getAllAlbums().isNotEmpty() || mediaAdapter.getAllMediaItems().isNotEmpty() || lockedMediaItems.isNotEmpty()
+        binding.btnMenuLockMedia.visibility = if (hasItems) View.VISIBLE else View.GONE
         binding.tvLockMediaTitle.text = getString(R.string.vault)
         binding.selectionBottomBarLockMedia.visibility = View.GONE
 

@@ -102,6 +102,7 @@ class VideosFragment : Fragment() {
 
         videoAdapter = VideoGridAdapter(
             onVideoClick = { video ->
+                if (com.developer.manali.galleryapp.AdCounter.isProcessingAd) return@VideoGridAdapter
                 val clickAction = {
                     playVideo(video)
                 }
@@ -110,6 +111,7 @@ class VideosFragment : Fragment() {
                         requireActivity(),
                         object : com.developer.manali.galleryapp.InterstitialAdCallback {
                             override fun onAdClose() {
+                                com.developer.manali.galleryapp.AdCounter.onAdFinished()
                                 clickAction()
                             }
                         }
