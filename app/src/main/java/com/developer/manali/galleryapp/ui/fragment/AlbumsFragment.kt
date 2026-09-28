@@ -321,6 +321,7 @@ class AlbumsFragment : Fragment() {
         }
 
         safeContext.sendBroadcast(android.content.Intent("com.developer.manali.galleryapp.ALBUMS_UPDATED"))
+        (safeContext as? com.developer.manali.galleryapp.MainActivity ?: activity as? com.developer.manali.galleryapp.MainActivity)?.onAlbumsDataLoaded(allAlbums.size, allAlbums.sumOf { it.totalSizeBytes })
         Toast.makeText(safeContext, safeContext.getString(R.string.album_created, trimmed), Toast.LENGTH_SHORT).show()
         return true
     }
@@ -388,6 +389,7 @@ class AlbumsFragment : Fragment() {
                     filterAlbums(currentSearchQuery)
                 }
             }
+            (activity as? com.developer.manali.galleryapp.MainActivity)?.onAlbumsDataLoaded(allAlbums.size, allAlbums.sumOf { it.totalSizeBytes })
 
             if (_binding != null) {
                 binding.progressAlbums.visibility = View.GONE
@@ -423,6 +425,7 @@ class AlbumsFragment : Fragment() {
             albumAdapter.removeAlbums(albumsToRemove)
         }
         filterAlbums(currentSearchQuery)
+        (activity as? com.developer.manali.galleryapp.MainActivity)?.onAlbumsDataLoaded(allAlbums.size, allAlbums.sumOf { it.totalSizeBytes })
     }
 
     fun getSelectedItems(): List<AlbumItem> {

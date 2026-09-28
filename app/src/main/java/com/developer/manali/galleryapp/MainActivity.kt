@@ -94,6 +94,17 @@ class MainActivity : BaseActivity() {
         }
     }
 
+    private val mediaUpdateReceiver = object : android.content.BroadcastReceiver() {
+        override fun onReceive(context: android.content.Context?, intent: android.content.Intent?) {
+            val action = intent?.action
+            if (action == "com.developer.manali.galleryapp.MEDIA_UPDATED" ||
+                action == "com.developer.manali.galleryapp.ALBUMS_UPDATED") {
+                com.developer.manali.galleryapp.data.MediaRepository.clearCache()
+                refreshAllFragments()
+            }
+        }
+    }
+
     private val cameraPermissionLauncher = registerForActivityResult(
         ActivityResultContracts.RequestPermission()
     ) { _ ->
@@ -244,6 +255,11 @@ class MainActivity : BaseActivity() {
                 true,
                 mediaContentObserver
             )
+            contentResolver.registerContentObserver(
+                MediaStore.Files.getContentUri("external"),
+                true,
+                mediaContentObserver
+            )
         } catch (_: Exception) {}
     }
 
@@ -259,13 +275,24 @@ class MainActivity : BaseActivity() {
             currentPhotosFragment?.updateGridColumns(appPrefs.gridColumns)
             currentVideosFragment?.updateGridColumns(appPrefs.gridColumns)
         }
+        com.developer.manali.galleryapp.data.MediaRepository.clearCache()
         loadMediaStats()
+        currentAlbumsFragment?.refreshData()
+        currentPhotosFragment?.refreshData()
+        currentVideosFragment?.refreshData()
+
         try {
-            val filter = android.content.IntentFilter("com.developer.manali.galleryapp.GRID_COLUMNS_CHANGED")
+            val filter = android.content.IntentFilter().apply {
+                addAction("com.developer.manali.galleryapp.GRID_COLUMNS_CHANGED")
+                addAction("com.developer.manali.galleryapp.MEDIA_UPDATED")
+                addAction("com.developer.manali.galleryapp.ALBUMS_UPDATED")
+            }
             if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
-                registerReceiver(gridColumnsReceiver, filter, RECEIVER_NOT_EXPORTED)
+                registerReceiver(gridColumnsReceiver, android.content.IntentFilter("com.developer.manali.galleryapp.GRID_COLUMNS_CHANGED"), RECEIVER_NOT_EXPORTED)
+                registerReceiver(mediaUpdateReceiver, filter, RECEIVER_NOT_EXPORTED)
             } else {
-                registerReceiver(gridColumnsReceiver, filter)
+                registerReceiver(gridColumnsReceiver, android.content.IntentFilter("com.developer.manali.galleryapp.GRID_COLUMNS_CHANGED"))
+                registerReceiver(mediaUpdateReceiver, filter)
             }
         } catch (_: Exception) {}
     }
@@ -275,6 +302,33 @@ class MainActivity : BaseActivity() {
         try {
             unregisterReceiver(gridColumnsReceiver)
         } catch (_: Exception) {}
+        try {
+            unregisterReceiver(mediaUpdateReceiver)
+        } catch (_: Exception) {}
+    }
+
+    fun onPhotosDataLoaded(count: Int, totalSize: Long) {
+        val currentStats = cachedMediaStats ?: com.developer.manali.galleryapp.data.MediaStats()
+        cachedMediaStats = currentStats.copy(photoCount = count, photoSize = totalSize)
+        if (binding.viewPagerMain.currentItem == 1 && !isSelectionMode) {
+            updateSubtitleForCurrentTab()
+        }
+    }
+
+    fun onVideosDataLoaded(count: Int, totalSize: Long) {
+        val currentStats = cachedMediaStats ?: com.developer.manali.galleryapp.data.MediaStats()
+        cachedMediaStats = currentStats.copy(videoCount = count, videoSize = totalSize)
+        if (binding.viewPagerMain.currentItem == 2 && !isSelectionMode) {
+            updateSubtitleForCurrentTab()
+        }
+    }
+
+    fun onAlbumsDataLoaded(count: Int, totalSize: Long) {
+        val currentStats = cachedMediaStats ?: com.developer.manali.galleryapp.data.MediaStats()
+        cachedMediaStats = currentStats.copy(albumCount = count)
+        if (binding.viewPagerMain.currentItem == 0 && !isSelectionMode) {
+            updateSubtitleForCurrentTab()
+        }
     }
 
     private fun loadBigBannerAd() {
@@ -323,7 +377,12 @@ class MainActivity : BaseActivity() {
     }
 
     private fun updateSubtitleForCurrentTab() {
-        val stats = cachedMediaStats ?: return
+        if (isSelectionMode) return
+        val stats = cachedMediaStats
+        if (stats == null) {
+            loadMediaStats()
+            return
+        }
         val nf = java.text.NumberFormat.getNumberInstance(java.util.Locale.US)
         when (binding.viewPagerMain.currentItem) {
             0 -> {
@@ -593,23 +652,17 @@ class MainActivity : BaseActivity() {
             try {
                 val dcimDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DCIM)
                 if (dcimDir.exists() && dcimDir.isDirectory) {
-                    dcimDir.listFiles()?.forEach { file ->
-                        if (file.isFile) {
-                            pathsToScan.add(file.absolutePath)
-                        } else if (file.isDirectory) {
-                            file.listFiles()?.forEach { subFile ->
-                                if (subFile.isFile) pathsToScan.add(subFile.absolutePath)
-                            }
-                        }
+                    dcimDir.walkTopDown().maxDepth(3).forEach { file ->
+                        if (file.isFile) pathsToScan.add(file.absolutePath)
                     }
                 }
                 val picturesDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES)
                 if (picturesDir.exists() && picturesDir.isDirectory) {
-                    picturesDir.listFiles()?.forEach { if (it.isFile) pathsToScan.add(it.absolutePath) }
+                    picturesDir.walkTopDown().maxDepth(3).forEach { if (it.isFile) pathsToScan.add(it.absolutePath) }
                 }
                 val moviesDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_MOVIES)
                 if (moviesDir.exists() && moviesDir.isDirectory) {
-                    moviesDir.listFiles()?.forEach { if (it.isFile) pathsToScan.add(it.absolutePath) }
+                    moviesDir.walkTopDown().maxDepth(3).forEach { if (it.isFile) pathsToScan.add(it.absolutePath) }
                 }
             } catch (_: Exception) {}
 
@@ -622,6 +675,8 @@ class MainActivity : BaseActivity() {
                     ) { _, _ -> }
                 } catch (_: Exception) {}
             }
+
+            kotlinx.coroutines.delay(400)
 
             withContext(Dispatchers.Main) {
                 com.developer.manali.galleryapp.data.MediaRepository.clearCache()
@@ -672,6 +727,8 @@ class MainActivity : BaseActivity() {
                     true
                 }
                 if (created) {
+                    com.developer.manali.galleryapp.data.MediaRepository.clearCache()
+                    loadMediaStats()
                     dialog.dismiss()
                 }
             } else {

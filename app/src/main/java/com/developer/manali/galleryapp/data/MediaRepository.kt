@@ -39,10 +39,26 @@ class MediaRepository {
     fun hasCachedVideos(): Boolean = Companion.hasCachedVideos()
     fun hasCachedAlbums(): Boolean = Companion.hasCachedAlbums()
 
-    suspend fun getMediaStats(context: Context): MediaStats = withContext(Dispatchers.IO) {
-        val photos = getPhotos(context)
-        val videos = getVideos(context)
-        val albums = getAlbums(context)
+    suspend fun getMediaStats(context: Context, excludeLocked: Boolean = true): MediaStats = withContext(Dispatchers.IO) {
+        val appPrefs = com.developer.manali.galleryapp.data.AppPreferences.getInstance(context)
+        val lockedAlbums = if (excludeLocked) appPrefs.getLockedAlbumIds() else emptySet()
+        val lockedMedia = if (excludeLocked) appPrefs.getLockedMediaIds() else emptySet()
+
+        val rawPhotos = getPhotos(context)
+        val photos = if (excludeLocked) {
+            rawPhotos.filter { !lockedAlbums.contains(it.bucketId) && !lockedMedia.contains(it.id.toString()) }
+        } else {
+            rawPhotos
+        }
+
+        val rawVideos = getVideos(context)
+        val videos = if (excludeLocked) {
+            rawVideos.filter { !lockedAlbums.contains(it.bucketId) && !lockedMedia.contains(it.id.toString()) }
+        } else {
+            rawVideos
+        }
+
+        val albums = getAlbums(context, excludeLocked = excludeLocked)
 
         val photoSize = photos.sumOf { it.size }
         val videoSize = videos.sumOf { it.size }

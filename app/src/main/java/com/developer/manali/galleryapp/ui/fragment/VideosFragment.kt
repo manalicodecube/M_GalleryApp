@@ -185,9 +185,12 @@ class VideosFragment : Fragment() {
     }
 
     fun removeItems(itemsToRemove: List<MediaItem>) {
+        val idsToRemove = itemsToRemove.map { it.id }.toSet()
+        allVideoItems.removeAll { idsToRemove.contains(it.id) }
         if (::videoAdapter.isInitialized) {
             videoAdapter.removeItems(itemsToRemove)
         }
+        (activity as? com.developer.manali.galleryapp.MainActivity)?.onVideosDataLoaded(allVideoItems.size, allVideoItems.sumOf { it.size })
     }
 
     fun isSelectionMode(): Boolean {
@@ -348,6 +351,7 @@ class VideosFragment : Fragment() {
 
             allVideoItems.clear()
             allVideoItems.addAll(sortedVideos)
+            (activity as? com.developer.manali.galleryapp.MainActivity)?.onVideosDataLoaded(allVideoItems.size, allVideoItems.sumOf { it.size })
 
             if (_binding != null) {
                 binding.progressVideos.visibility = View.GONE

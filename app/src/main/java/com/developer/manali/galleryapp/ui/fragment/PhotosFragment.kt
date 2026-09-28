@@ -183,9 +183,12 @@ class PhotosFragment : Fragment() {
     }
 
     fun removeItems(itemsToRemove: List<MediaItem>) {
+        val idsToRemove = itemsToRemove.map { it.id }.toSet()
+        allPhotoItems.removeAll { idsToRemove.contains(it.id) }
         if (::photoAdapter.isInitialized) {
             photoAdapter.removeItems(itemsToRemove)
         }
+        (activity as? com.developer.manali.galleryapp.MainActivity)?.onPhotosDataLoaded(allPhotoItems.size, allPhotoItems.sumOf { it.size })
     }
 
     fun isSelectionMode(): Boolean {
@@ -346,6 +349,7 @@ class PhotosFragment : Fragment() {
 
             allPhotoItems.clear()
             allPhotoItems.addAll(sortedPhotos)
+            (activity as? com.developer.manali.galleryapp.MainActivity)?.onPhotosDataLoaded(allPhotoItems.size, allPhotoItems.sumOf { it.size })
 
             if (_binding != null) {
                 binding.progressPhotos.visibility = View.GONE
