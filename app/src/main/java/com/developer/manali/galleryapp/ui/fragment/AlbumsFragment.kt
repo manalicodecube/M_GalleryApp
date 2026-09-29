@@ -54,7 +54,10 @@ class AlbumsFragment : Fragment() {
 
     private val albumsUpdateReceiver = object : android.content.BroadcastReceiver() {
         override fun onReceive(context: android.content.Context?, intent: android.content.Intent?) {
-            if (intent?.action == "com.developer.manali.galleryapp.ALBUMS_UPDATED") {
+            val action = intent?.action
+            if (action == "com.developer.manali.galleryapp.ALBUMS_UPDATED" ||
+                action == "com.developer.manali.galleryapp.MEDIA_UPDATED") {
+                com.developer.manali.galleryapp.data.MediaRepository.clearCache()
                 refreshData()
             }
         }
@@ -62,18 +65,26 @@ class AlbumsFragment : Fragment() {
 
     override fun onResume() {
         super.onResume()
+        val filter = android.content.IntentFilter().apply {
+            addAction("com.developer.manali.galleryapp.ALBUMS_UPDATED")
+            addAction("com.developer.manali.galleryapp.MEDIA_UPDATED")
+        }
         if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
-            requireContext().registerReceiver(albumsUpdateReceiver, android.content.IntentFilter("com.developer.manali.galleryapp.ALBUMS_UPDATED"), android.content.Context.RECEIVER_NOT_EXPORTED)
+            requireContext().registerReceiver(albumsUpdateReceiver, filter, android.content.Context.RECEIVER_NOT_EXPORTED)
         } else {
-            requireContext().registerReceiver(albumsUpdateReceiver, android.content.IntentFilter("com.developer.manali.galleryapp.ALBUMS_UPDATED"))
+            requireContext().registerReceiver(albumsUpdateReceiver, filter)
         }
         applyViewType()
-        loadAlbums()
+        if (allAlbums.isEmpty() || !mediaRepository.hasCachedAlbums()) {
+            loadAlbums()
+        }
     }
 
     override fun onPause() {
         super.onPause()
-        requireContext().unregisterReceiver(albumsUpdateReceiver)
+        try {
+            requireContext().unregisterReceiver(albumsUpdateReceiver)
+        } catch (_: Exception) {}
     }
 
     private fun setupRecyclerView() {
@@ -129,9 +140,18 @@ class AlbumsFragment : Fragment() {
         albumAdapter.setListView(isList)
 
         binding.rvAlbums.setHasFixedSize(true)
-        binding.rvAlbums.setItemViewCacheSize(25)
+        binding.rvAlbums.setItemViewCacheSize(60)
         binding.rvAlbums.layoutManager = GridLayoutManager(requireContext(), span)
         binding.rvAlbums.adapter = albumAdapter
+
+        val cached = mediaRepository.getCachedAlbums(excludeLocked = true)
+        if (!cached.isNullOrEmpty() && allAlbums.isEmpty()) {
+            allAlbums.addAll(cached)
+        }
+        if (allAlbums.isNotEmpty()) {
+            filterAlbums(currentSearchQuery)
+            binding.progressAlbums.visibility = View.GONE
+        }
 
         com.developer.manali.galleryapp.util.PinchZoomGridHelper(
             context = requireContext(),
@@ -358,11 +378,11 @@ class AlbumsFragment : Fragment() {
     private fun loadAlbums() {
         if (!isAdded) return
         val safeContext = context ?: return
+        if (allAlbums.isEmpty() && !mediaRepository.hasCachedAlbums()) {
+            _binding?.progressAlbums?.visibility = View.VISIBLE
+        }
         viewLifecycleOwner.lifecycleScope.launch {
             if (_binding == null) return@launch
-            if (albumAdapter.itemCount == 0 && !mediaRepository.hasCachedAlbums()) {
-                binding.progressAlbums.visibility = View.VISIBLE
-            }
             val sortedAlbums: List<AlbumItem> = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Default) {
                 val rawAlbums = mediaRepository.getAlbums(safeContext)
                 val appPrefs = com.developer.manali.galleryapp.data.AppPreferences.getInstance(safeContext)
@@ -382,12 +402,15 @@ class AlbumsFragment : Fragment() {
                 }
             }
 
-            if (allAlbums != sortedAlbums) {
+            if (_binding == null) return@launch
+
+            val isDifferent = allAlbums.size != sortedAlbums.size ||
+                    allAlbums.zip(sortedAlbums).any { (a, b) -> a.bucketId != b.bucketId || a.itemCount != b.itemCount || a.coverUri != b.coverUri }
+
+            if (isDifferent || allAlbums.isEmpty()) {
                 allAlbums.clear()
                 allAlbums.addAll(sortedAlbums)
-                if (_binding != null) {
-                    filterAlbums(currentSearchQuery)
-                }
+                filterAlbums(currentSearchQuery)
             }
             (activity as? com.developer.manali.galleryapp.MainActivity)?.onAlbumsDataLoaded(allAlbums.size, allAlbums.sumOf { it.totalSizeBytes })
 

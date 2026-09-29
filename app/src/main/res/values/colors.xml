@@ -47,7 +47,7 @@
     <color name="lumina_illustration_dot_gray">#A6B0BE</color>
     <color name="lumina_button_ripple">#26FFFFFF</color>
 
-    <color name="switch_track_on">@color/lumina_primary</color>
+    <color name="switch_track_on">@color/accent_main</color>
     <color name="switch_track_off">#D1D1D6</color>
 
     <color name="switch_thumb_on">#5B6471</color>

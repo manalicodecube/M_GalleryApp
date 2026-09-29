@@ -38,6 +38,7 @@ class MediaRepository {
     fun hasCachedPhotos(): Boolean = Companion.hasCachedPhotos()
     fun hasCachedVideos(): Boolean = Companion.hasCachedVideos()
     fun hasCachedAlbums(): Boolean = Companion.hasCachedAlbums()
+    fun getCachedAlbums(excludeLocked: Boolean = true): List<AlbumItem>? = Companion.getCachedAlbums(excludeLocked)
 
     suspend fun getMediaStats(context: Context, excludeLocked: Boolean = true): MediaStats = withContext(Dispatchers.IO) {
         val appPrefs = com.developer.manali.galleryapp.data.AppPreferences.getInstance(context)
@@ -264,6 +265,8 @@ class MediaRepository {
             cachedAlbumsWithLocked?.let { return@withContext it }
         }
         val albumsMap = LinkedHashMap<String, AlbumData>()
+        val albumDirMap = HashMap<String, File>()
+        val albumPathsMap = HashMap<String, MutableSet<String>>()
         val appPrefs = com.developer.manali.galleryapp.data.AppPreferences.getInstance(context)
         val lockedMedia = appPrefs.getLockedMediaIds()
         val lockedAlbums = appPrefs.getLockedAlbumIds()
@@ -311,6 +314,16 @@ class MediaRepository {
                 
                 if (excludeLocked && (lockedAlbums.contains(bucketId) || lockedMedia.contains(id.toString()))) {
                     continue
+                }
+
+                if (!data.isNullOrEmpty()) {
+                    try {
+                        val f = File(data)
+                        if (f.parentFile != null && f.parentFile!!.exists()) {
+                            albumDirMap[bucketId] = f.parentFile!!
+                        }
+                    } catch (_: Exception) {}
+                    albumPathsMap.getOrPut(bucketId) { mutableSetOf() }.add(data)
                 }
 
                 val uri = ContentUris.withAppendedId(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, id)
@@ -368,6 +381,16 @@ class MediaRepository {
                     continue
                 }
 
+                if (!data.isNullOrEmpty()) {
+                    try {
+                        val f = File(data)
+                        if (f.parentFile != null && f.parentFile!!.exists()) {
+                            albumDirMap[bucketId] = f.parentFile!!
+                        }
+                    } catch (_: Exception) {}
+                    albumPathsMap.getOrPut(bucketId) { mutableSetOf() }.add(data)
+                }
+
                 val uri = ContentUris.withAppendedId(MediaStore.Video.Media.EXTERNAL_CONTENT_URI, id)
 
                 val album = albumsMap.getOrPut(bucketId) {
@@ -377,6 +400,8 @@ class MediaRepository {
                 album.totalSizeBytes += size
             }
         }
+
+
 
         // Also include all user created albums from AppPreferences
         val createdAlbumNames = appPrefs.getCreatedAlbums()
@@ -400,11 +425,15 @@ class MediaRepository {
                             for (f in files) {
                                 if (f.isFile) {
                                     val fl = f.name.lowercase(Locale.US)
-                                    val isImg = fl.endsWith(".jpg") || fl.endsWith(".jpeg") || fl.endsWith(".png") || fl.endsWith(".webp") || fl.endsWith(".gif") || fl.endsWith(".bmp")
-                                    val isVid = fl.endsWith(".mp4") || fl.endsWith(".mkv") || fl.endsWith(".webm") || fl.endsWith(".avi") || fl.endsWith(".mov") || fl.endsWith(".3gp")
+                                    val isImg = fl.endsWith(".jpg") || fl.endsWith(".jpeg") || fl.endsWith(".png") || fl.endsWith(".webp") || fl.endsWith(".gif") || fl.endsWith(".bmp") || fl.endsWith(".heic") || fl.endsWith(".heif")
+                                    val isVid = fl.endsWith(".mp4") || fl.endsWith(".mkv") || fl.endsWith(".webm") || fl.endsWith(".avi") || fl.endsWith(".mov") || fl.endsWith(".3gp") || fl.endsWith(".ts") || fl.endsWith(".m4v")
                                     if (isImg || isVid) {
+                                        val hashId = f.absolutePath.hashCode().toLong()
+                                        if (excludeLocked && (lockedMedia.contains(hashId.toString()) || lockedMedia.contains(f.name))) {
+                                            continue
+                                        }
                                         diskCount++
-                                        diskSize += f.length()
+                                        diskSize += if (f.length() > 0) f.length() else 1L
                                         if (diskCover == null) {
                                             diskCover = Uri.fromFile(f)
                                         }
@@ -1231,6 +1260,7 @@ class MediaRepository {
         fun hasCachedPhotos(): Boolean = cachedPhotos != null
         fun hasCachedVideos(): Boolean = cachedVideos != null
         fun hasCachedAlbums(): Boolean = cachedAlbums != null
+        fun getCachedAlbums(excludeLocked: Boolean = true): List<AlbumItem>? = if (excludeLocked) cachedAlbums else cachedAlbumsWithLocked
 
         fun clearCache() {
             cachedPhotos = null

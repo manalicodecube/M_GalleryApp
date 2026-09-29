@@ -1032,7 +1032,9 @@ class AlbumDetailActivity : BaseActivity() {
             val (movedCount, pendingUris) = mediaRepository.moveMediaItems(this@AlbumDetailActivity, selected, targetAlbum, targetAlbumName)
 
             withContext(Dispatchers.Main) {
+                com.developer.manali.galleryapp.data.MediaRepository.clearCache()
                 sendBroadcast(android.content.Intent("com.developer.manali.galleryapp.ALBUMS_UPDATED"))
+                sendBroadcast(android.content.Intent("com.developer.manali.galleryapp.MEDIA_UPDATED"))
 
                 if (pendingUris.isNotEmpty() && android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.R) {
                     try {

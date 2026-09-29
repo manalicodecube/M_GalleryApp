@@ -2,6 +2,7 @@ package com.developer.manali.galleryapp
 
 import android.app.Activity
 import android.app.Dialog
+import android.content.ContentUris
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.content.res.ColorStateList
@@ -394,32 +395,131 @@ class MediaDetailActivity : BaseActivity() {
 
 
 
+    private fun getValidContentUri(item: MediaItem): Uri {
+        val uri = item.uri
+        val path = item.path
+
+        if (uri.toString().startsWith("content://media/")) {
+            return uri
+        }
+
+        if (path.isNotEmpty()) {
+            val file = File(path)
+            if (file.exists()) {
+                val tableUri = if (item.isVideo) {
+                    MediaStore.Video.Media.EXTERNAL_CONTENT_URI
+                } else {
+                    MediaStore.Images.Media.EXTERNAL_CONTENT_URI
+                }
+                val idColumn = if (item.isVideo) MediaStore.Video.Media._ID else MediaStore.Images.Media._ID
+                val dataColumn = if (item.isVideo) MediaStore.Video.Media.DATA else MediaStore.Images.Media.DATA
+
+                try {
+                    val cursor = contentResolver.query(
+                        tableUri,
+                        arrayOf(idColumn),
+                        "$dataColumn = ?",
+                        arrayOf(file.absolutePath),
+                        null
+                    )
+                    cursor?.use {
+                        if (it.moveToFirst()) {
+                            val id = it.getLong(it.getColumnIndexOrThrow(idColumn))
+                            return ContentUris.withAppendedId(tableUri, id)
+                        }
+                    }
+                } catch (_: Exception) {}
+
+                var scannedMediaStoreUri: Uri? = null
+                val latch = java.util.concurrent.CountDownLatch(1)
+                try {
+                    MediaScannerConnection.scanFile(
+                        this,
+                        arrayOf(file.absolutePath),
+                        arrayOf(if (item.isVideo) "video/*" else "image/*")
+                    ) { _, newUri ->
+                        scannedMediaStoreUri = newUri
+                        latch.countDown()
+                    }
+                    latch.await(800, java.util.concurrent.TimeUnit.MILLISECONDS)
+                } catch (_: Exception) {}
+
+                if (scannedMediaStoreUri != null && scannedMediaStoreUri.toString().startsWith("content://media/")) {
+                    return scannedMediaStoreUri!!
+                }
+
+                try {
+                    return androidx.core.content.FileProvider.getUriForFile(
+                        this,
+                        "${packageName}.fileprovider",
+                        file
+                    )
+                } catch (_: Exception) {}
+            }
+        }
+
+        return uri
+    }
+
     private fun openGooglePhotosEditor(imageUri: Uri) {
-        val intent = Intent(Intent.ACTION_EDIT).apply {
-            setDataAndType(imageUri, "image/*")
-            addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_WRITE_URI_PERMISSION)
-            val packageManager = packageManager
+        val item = currentMediaItem
+        val isVideo = item?.isVideo == true
+        val mimeType = if (isVideo) "video/*" else "image/*"
+
+        lifecycleScope.launch(Dispatchers.IO) {
+            val targetUri = if (item != null) getValidContentUri(item) else imageUri
+
             val isGooglePhotosInstalled = try {
                 packageManager.getPackageInfo("com.google.android.apps.photos", 0)
                 true
-            } catch (e: PackageManager.NameNotFoundException) {
+            } catch (e: Exception) {
                 false
             }
-            if (isGooglePhotosInstalled) {
-                setPackage("com.google.android.apps.photos")
-            }
-        }
-        try {
-            startEditorForResult.launch(intent)
-        } catch (e: Exception) {
-            try {
-                val genericIntent = Intent(Intent.ACTION_EDIT).apply {
-                    setDataAndType(imageUri, "image/*")
-                    addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_WRITE_URI_PERMISSION)
+
+            val intent = Intent(Intent.ACTION_EDIT).apply {
+                setDataAndType(targetUri, mimeType)
+                addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_WRITE_URI_PERMISSION)
+                if (isGooglePhotosInstalled) {
+                    setPackage("com.google.android.apps.photos")
                 }
-                startEditorForResult.launch(Intent.createChooser(genericIntent, "Edit Image"))
-            } catch (e2: Exception) {
-                Toast.makeText(this, getString(R.string.no_app_found_to_open_this_file), Toast.LENGTH_SHORT).show()
+            }
+
+            if (targetUri.authority == "${packageName}.fileprovider") {
+                try {
+                    grantUriPermission(
+                        "com.google.android.apps.photos",
+                        targetUri,
+                        Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_WRITE_URI_PERMISSION
+                    )
+                } catch (_: Exception) {}
+            }
+
+            withContext(Dispatchers.Main) {
+                try {
+                    startEditorForResult.launch(intent)
+                } catch (e: Exception) {
+                    if (isGooglePhotosInstalled) {
+                        try {
+                            val fallbackIntent = Intent(Intent.ACTION_EDIT).apply {
+                                setDataAndType(targetUri, mimeType)
+                                addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_WRITE_URI_PERMISSION)
+                            }
+                            startEditorForResult.launch(fallbackIntent)
+                        } catch (e2: Exception) {
+                            Toast.makeText(
+                                this@MediaDetailActivity,
+                                getString(R.string.no_app_found_to_open_this_file),
+                                Toast.LENGTH_SHORT
+                            ).show()
+                        }
+                    } else {
+                        Toast.makeText(
+                            this@MediaDetailActivity,
+                            getString(R.string.no_app_found_to_open_this_file),
+                            Toast.LENGTH_SHORT
+                        ).show()
+                    }
+                }
             }
         }
     }
@@ -1055,12 +1155,12 @@ class MediaDetailActivity : BaseActivity() {
             val appPrefs = com.developer.manali.galleryapp.data.AppPreferences.getInstance(this)
             appPrefs.setLockedMedia(listOf(item.id.toString()), true)
             Toast.makeText(this, getString(R.string.moved_to_vault), Toast.LENGTH_SHORT).show()
-            
+
             val removedItem = mediaList.removeAt(pos)
             appPrefs.removeFavorite(removedItem.id)
             mediaPagerAdapter.submitList(ArrayList(mediaList))
             setResult(RESULT_OK)
-            
+
             if (mediaList.isEmpty()) {
                 finish()
             } else {
@@ -1407,3 +1507,17 @@ class MediaDetailActivity : BaseActivity() {
         }
     }
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+

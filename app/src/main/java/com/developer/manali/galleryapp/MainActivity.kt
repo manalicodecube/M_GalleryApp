@@ -275,11 +275,7 @@ class MainActivity : BaseActivity() {
             currentPhotosFragment?.updateGridColumns(appPrefs.gridColumns)
             currentVideosFragment?.updateGridColumns(appPrefs.gridColumns)
         }
-        com.developer.manali.galleryapp.data.MediaRepository.clearCache()
         loadMediaStats()
-        currentAlbumsFragment?.refreshData()
-        currentPhotosFragment?.refreshData()
-        currentVideosFragment?.refreshData()
 
         try {
             val filter = android.content.IntentFilter().apply {
@@ -1801,7 +1797,9 @@ class MainActivity : BaseActivity() {
             val (movedCount, pendingUris) = mediaRepository.moveMediaItems(this@MainActivity, selected, targetAlbum, targetAlbumName)
 
             withContext(Dispatchers.Main) {
+                com.developer.manali.galleryapp.data.MediaRepository.clearCache()
                 sendBroadcast(android.content.Intent("com.developer.manali.galleryapp.ALBUMS_UPDATED"))
+                sendBroadcast(android.content.Intent("com.developer.manali.galleryapp.MEDIA_UPDATED"))
                 
                 if (pendingUris.isNotEmpty() && Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
                     try {
@@ -1813,7 +1811,6 @@ class MainActivity : BaseActivity() {
                     }
                 }
                 Toast.makeText(this@MainActivity, "Moved $movedCount item(s) to \"$targetAlbumName\"", Toast.LENGTH_SHORT).show()
-                loadMediaStats()
                 refreshAllFragments()
             }
         }

@@ -142,8 +142,9 @@ class AlbumAdapter(
 
                 Glide.with(binding.ivAlbumCover.context)
                     .load(album.coverUri)
-                    .override(400, 400)
-                    .diskCacheStrategy(DiskCacheStrategy.AUTOMATIC)
+                    .override(300, 300)
+                    .thumbnail(Glide.with(binding.ivAlbumCover.context).load(album.coverUri).sizeMultiplier(0.2f))
+                    .diskCacheStrategy(DiskCacheStrategy.ALL)
                     .centerCrop()
                     .into(binding.ivAlbumCover)
 
@@ -232,8 +233,9 @@ class AlbumAdapter(
 
                 Glide.with(binding.ivAlbumCover.context)
                     .load(album.coverUri)
-                    .override(300, 300)
-                    .diskCacheStrategy(DiskCacheStrategy.AUTOMATIC)
+                    .override(250, 250)
+                    .thumbnail(Glide.with(binding.ivAlbumCover.context).load(album.coverUri).sizeMultiplier(0.2f))
+                    .diskCacheStrategy(DiskCacheStrategy.ALL)
                     .centerCrop()
                     .into(binding.ivAlbumCover)
 
