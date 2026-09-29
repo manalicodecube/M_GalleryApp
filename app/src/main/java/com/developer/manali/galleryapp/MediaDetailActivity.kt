@@ -116,62 +116,7 @@ class MediaDetailActivity : BaseActivity() {
             }
         }
     }
-    private val startEditorForResult =
-        registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
-            val data: Intent? = result.data
-            val editedImageUri: Uri? = data?.data
-            val originalPath = currentMediaItem?.path
 
-            val pathsToScan = mutableListOf<String>()
-            if (!originalPath.isNullOrEmpty()) {
-                pathsToScan.add(originalPath)
-                try {
-                    File(originalPath).parentFile?.let { parent ->
-                        parent.listFiles()?.forEach { file ->
-                            if (file.isFile && (file.extension.equals("jpg", true) || file.extension.equals("jpeg", true) || file.extension.equals("png", true) || file.extension.equals("webp", true))) {
-                                pathsToScan.add(file.absolutePath)
-                            }
-                        }
-                    }
-                } catch (_: Exception) {}
-            }
-
-            if (editedImageUri != null) {
-                try {
-                    val p = getRealFilePathFromUri(editedImageUri)
-                    if (!p.isNullOrEmpty()) pathsToScan.add(p)
-                } catch (_: Exception) {}
-            }
-
-            try {
-                val picturesDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES)
-                picturesDir.listFiles()?.forEach { f ->
-                    if (f.isFile && (f.extension.equals("jpg", true) || f.extension.equals("jpeg", true) || f.extension.equals("png", true) || f.extension.equals("webp", true))) {
-                        pathsToScan.add(f.absolutePath)
-                    }
-                }
-            } catch (_: Exception) {}
-
-            com.developer.manali.galleryapp.data.MediaRepository.clearCache()
-
-            if (pathsToScan.isNotEmpty()) {
-                MediaScannerConnection.scanFile(
-                    this,
-                    pathsToScan.distinct().toTypedArray(),
-                    null
-                ) { _, _ ->
-                    lifecycleScope.launch(Dispatchers.Main) {
-                        sendBroadcast(Intent("com.developer.manali.galleryapp.MEDIA_UPDATED"))
-                        sendBroadcast(Intent("com.developer.manali.galleryapp.ALBUMS_UPDATED"))
-                        loadMediaData()
-                    }
-                }
-            } else {
-                sendBroadcast(Intent("com.developer.manali.galleryapp.MEDIA_UPDATED"))
-                sendBroadcast(Intent("com.developer.manali.galleryapp.ALBUMS_UPDATED"))
-                loadMediaData()
-            }
-        }
     private val mediaRepository = MediaRepository()
     private val mediaList = ArrayList<MediaItem>()
     private var currentPosition: Int = 0
@@ -362,9 +307,9 @@ class MediaDetailActivity : BaseActivity() {
             shareMedia()
         }
 
+
         binding.btnEditDetail.setOnClickListener {
-            val item = currentMediaItem ?: return@setOnClickListener
-            val uri = item.uri
+            val uri = getCurrentImageUri()
             Log.d("VVV", "setupClickListeners: $uri")
             if (uri != null) {
                 openGooglePhotosEditor(uri)
@@ -385,6 +330,24 @@ class MediaDetailActivity : BaseActivity() {
             showRightMenuDialog()
         }
     }
+
+
+    private fun getCurrentImageUri(): Uri? {
+        return currentMediaItem?.uri
+    }
+
+    private val startEditorForResult =
+        registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+            if (result.resultCode == Activity.RESULT_OK) {
+                val data: Intent? = result.data
+                val editedImageUri: Uri? = data?.data
+                if (editedImageUri != null) {
+//                loadEditedImage(editedImageUri)
+                }
+            }
+        }
+
+
 
     private val moveDeleteLauncher = registerForActivityResult(
         ActivityResultContracts.StartIntentSenderForResult()
@@ -462,68 +425,22 @@ class MediaDetailActivity : BaseActivity() {
     }
 
     private fun openGooglePhotosEditor(imageUri: Uri) {
-        val item = currentMediaItem
-        val isVideo = item?.isVideo == true
-        val mimeType = if (isVideo) "video/*" else "image/*"
-
-        lifecycleScope.launch(Dispatchers.IO) {
-            val targetUri = if (item != null) getValidContentUri(item) else imageUri
-
+        val intent = Intent(Intent.ACTION_EDIT).apply {
+            setDataAndType(imageUri, "image/*")
+            addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+            val packageManager = packageManager
             val isGooglePhotosInstalled = try {
                 packageManager.getPackageInfo("com.google.android.apps.photos", 0)
                 true
-            } catch (e: Exception) {
+            } catch (e: PackageManager.NameNotFoundException) {
                 false
             }
-
-            val intent = Intent(Intent.ACTION_EDIT).apply {
-                setDataAndType(targetUri, mimeType)
-                addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_WRITE_URI_PERMISSION)
-                if (isGooglePhotosInstalled) {
-                    setPackage("com.google.android.apps.photos")
-                }
-            }
-
-            if (targetUri.authority == "${packageName}.fileprovider") {
-                try {
-                    grantUriPermission(
-                        "com.google.android.apps.photos",
-                        targetUri,
-                        Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_WRITE_URI_PERMISSION
-                    )
-                } catch (_: Exception) {}
-            }
-
-            withContext(Dispatchers.Main) {
-                try {
-                    startEditorForResult.launch(intent)
-                } catch (e: Exception) {
-                    if (isGooglePhotosInstalled) {
-                        try {
-                            val fallbackIntent = Intent(Intent.ACTION_EDIT).apply {
-                                setDataAndType(targetUri, mimeType)
-                                addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_WRITE_URI_PERMISSION)
-                            }
-                            startEditorForResult.launch(fallbackIntent)
-                        } catch (e2: Exception) {
-                            Toast.makeText(
-                                this@MediaDetailActivity,
-                                getString(R.string.no_app_found_to_open_this_file),
-                                Toast.LENGTH_SHORT
-                            ).show()
-                        }
-                    } else {
-                        Toast.makeText(
-                            this@MediaDetailActivity,
-                            getString(R.string.no_app_found_to_open_this_file),
-                            Toast.LENGTH_SHORT
-                        ).show()
-                    }
-                }
+            if (isGooglePhotosInstalled) {
+                setPackage("com.google.android.apps.photos")
             }
         }
+        startEditorForResult.launch(intent)
     }
-
 
     private fun toggleFavorite() {
         val item = currentMediaItem ?: return
