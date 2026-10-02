@@ -457,9 +457,13 @@ class AlbumDetailActivity : BaseActivity() {
             if (sortedMediaItems.isEmpty()) {
                 binding.layoutEmptyAlbumDetail.visibility = View.VISIBLE
                 binding.rvAlbumDetail.visibility = View.GONE
+                binding.btnMenuAlbumDetail.visibility = View.GONE
             } else {
                 binding.layoutEmptyAlbumDetail.visibility = View.GONE
                 binding.rvAlbumDetail.visibility = View.VISIBLE
+                if (!isSelectionMode) {
+                    binding.btnMenuAlbumDetail.visibility = View.VISIBLE
+                }
                 mediaAdapter.submitList(sortedMediaItems)
             }
         }
@@ -523,7 +527,7 @@ class AlbumDetailActivity : BaseActivity() {
 
         binding.btnBackAlbumDetail.setImageResource(R.drawable.arrowback)
         binding.btnSelectAllAlbumDetail.visibility = View.GONE
-        binding.btnMenuAlbumDetail.visibility = View.VISIBLE
+        binding.btnMenuAlbumDetail.visibility = if (albumMediaItems.isNotEmpty()) View.VISIBLE else View.GONE
         binding.tvAlbumDetailTitle.text = bucketName
 
         binding.selectionBottomBarContainer.visibility = View.GONE
@@ -1024,6 +1028,7 @@ class AlbumDetailActivity : BaseActivity() {
         if (albumMediaItems.isEmpty()) {
             binding.layoutEmptyAlbumDetail.visibility = View.VISIBLE
             binding.rvAlbumDetail.visibility = View.GONE
+            binding.btnMenuAlbumDetail.visibility = View.GONE
         }
 
         exitSelectionMode()
