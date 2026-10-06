@@ -244,4 +244,5 @@
     <string name="please_wait_for_video_to_load">Please wait for video to load</string>
     <string name="equalizer_not_supported_on_this_device">Equalizer not supported on this device</string>
     <string name="album_already_exists">Album with this name already exists</string>
+    <string name="loading_ad">Loading Ad…</string>
 </resources>
