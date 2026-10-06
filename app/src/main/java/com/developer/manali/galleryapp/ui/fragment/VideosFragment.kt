@@ -311,7 +311,7 @@ class VideosFragment : Fragment() {
                 val lockedAlbums = appPrefs.getLockedAlbumIds()
                 val lockedMedia = appPrefs.getLockedMediaIds()
                 val rawVideos = rawVideosList.filter { 
-                    !lockedAlbums.contains(it.bucketId) && !lockedMedia.contains(it.id.toString())
+                    !lockedAlbums.contains(it.bucketId) && !lockedAlbums.contains(it.bucketName) && !lockedMedia.contains(it.id.toString())
                 }
 
                 val sortBy = appPrefs.videosSortBy

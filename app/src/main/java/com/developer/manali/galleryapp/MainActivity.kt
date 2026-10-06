@@ -276,6 +276,8 @@ class MainActivity : BaseActivity() {
             currentPhotosFragment?.updateGridColumns(appPrefs.gridColumns)
             currentVideosFragment?.updateGridColumns(appPrefs.gridColumns)
         }
+        com.developer.manali.galleryapp.data.MediaRepository.clearCache()
+        refreshAllFragments()
         loadMediaStats()
 
         try {
@@ -1129,6 +1131,8 @@ class MainActivity : BaseActivity() {
             appPrefs.setLockedAlbums(selectedIds, true)
             Toast.makeText(this, getString(R.string.moved_to_vault), Toast.LENGTH_SHORT).show()
             MediaRepository.clearCache()
+            sendBroadcast(android.content.Intent("com.developer.manali.galleryapp.MEDIA_UPDATED"))
+            sendBroadcast(android.content.Intent("com.developer.manali.galleryapp.ALBUMS_UPDATED"))
             exitSelectionMode()
             refreshAllFragments()
         }
@@ -1159,6 +1163,8 @@ class MainActivity : BaseActivity() {
             appPrefs.setLockedMedia(selectedIds, true)
             Toast.makeText(this, getString(R.string.moved_to_vault), Toast.LENGTH_SHORT).show()
             MediaRepository.clearCache()
+            sendBroadcast(android.content.Intent("com.developer.manali.galleryapp.MEDIA_UPDATED"))
+            sendBroadcast(android.content.Intent("com.developer.manali.galleryapp.ALBUMS_UPDATED"))
             exitSelectionMode()
             refreshAllFragments()
         }

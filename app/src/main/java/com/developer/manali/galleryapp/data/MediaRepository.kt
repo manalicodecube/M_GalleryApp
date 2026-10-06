@@ -476,11 +476,11 @@ class MediaRepository {
         result
     }
 
-    suspend fun getMediaForAlbum(context: Context, bucketId: String, bucketName: String): List<MediaItem> = withContext(Dispatchers.IO) {
+    suspend fun getMediaForAlbum(context: Context, bucketId: String, bucketName: String, excludeLocked: Boolean = true): List<MediaItem> = withContext(Dispatchers.IO) {
         val mediaList = mutableListOf<MediaItem>()
         val appPrefs = com.developer.manali.galleryapp.data.AppPreferences.getInstance(context)
-        val lockedMedia = appPrefs.getLockedMediaIds()
-        val lockedAlbums = appPrefs.getLockedAlbumIds()
+        val lockedMedia = if (excludeLocked) appPrefs.getLockedMediaIds() else emptySet()
+        val lockedAlbums = if (excludeLocked) appPrefs.getLockedAlbumIds() else emptySet()
 
         val imgProjection = arrayOf(
             MediaStore.Images.Media._ID,

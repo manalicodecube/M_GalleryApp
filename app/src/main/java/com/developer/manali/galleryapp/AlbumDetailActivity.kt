@@ -78,6 +78,17 @@ class AlbumDetailActivity : BaseActivity() {
         }
     }
 
+    private val mediaUpdateReceiver = object : android.content.BroadcastReceiver() {
+        override fun onReceive(context: android.content.Context?, intent: android.content.Intent?) {
+            val action = intent?.action
+            if (action == "com.developer.manali.galleryapp.MEDIA_UPDATED" ||
+                action == "com.developer.manali.galleryapp.ALBUMS_UPDATED") {
+                com.developer.manali.galleryapp.data.MediaRepository.clearCache()
+                loadAlbumMedia()
+            }
+        }
+    }
+
     private val passwordSetupLauncher = registerForActivityResult(
         androidx.activity.result.contract.ActivityResultContracts.StartActivityForResult()
     ) { result ->
@@ -93,6 +104,9 @@ class AlbumDetailActivity : BaseActivity() {
             val selectedIds = selected.map { it.id.toString() }
             appPrefs.setLockedMedia(selectedIds, true)
             Toast.makeText(this, getString(R.string.moved_to_vault), Toast.LENGTH_SHORT).show()
+            MediaRepository.clearCache()
+            sendBroadcast(android.content.Intent("com.developer.manali.galleryapp.MEDIA_UPDATED"))
+            sendBroadcast(android.content.Intent("com.developer.manali.galleryapp.ALBUMS_UPDATED"))
             exitSelectionMode()
             loadAlbumMedia()
         }
@@ -150,13 +164,20 @@ class AlbumDetailActivity : BaseActivity() {
         if (!prefs.isListView && currentSpanCount != prefs.gridColumns) {
             updateGridColumns(prefs.gridColumns)
         }
+        MediaRepository.clearCache()
         loadAlbumMedia()
         try {
-            val filter = android.content.IntentFilter("com.developer.manali.galleryapp.GRID_COLUMNS_CHANGED")
+            val filter = android.content.IntentFilter().apply {
+                addAction("com.developer.manali.galleryapp.GRID_COLUMNS_CHANGED")
+                addAction("com.developer.manali.galleryapp.MEDIA_UPDATED")
+                addAction("com.developer.manali.galleryapp.ALBUMS_UPDATED")
+            }
             if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
-                registerReceiver(gridColumnsReceiver, filter, RECEIVER_NOT_EXPORTED)
+                registerReceiver(gridColumnsReceiver, android.content.IntentFilter("com.developer.manali.galleryapp.GRID_COLUMNS_CHANGED"), RECEIVER_NOT_EXPORTED)
+                registerReceiver(mediaUpdateReceiver, filter, RECEIVER_NOT_EXPORTED)
             } else {
-                registerReceiver(gridColumnsReceiver, filter)
+                registerReceiver(gridColumnsReceiver, android.content.IntentFilter("com.developer.manali.galleryapp.GRID_COLUMNS_CHANGED"))
+                registerReceiver(mediaUpdateReceiver, filter)
             }
         } catch (_: Exception) {}
     }
@@ -165,6 +186,7 @@ class AlbumDetailActivity : BaseActivity() {
         super.onPause()
         try {
             unregisterReceiver(gridColumnsReceiver)
+            unregisterReceiver(mediaUpdateReceiver)
         } catch (_: Exception) {}
     }
 
@@ -425,11 +447,15 @@ class AlbumDetailActivity : BaseActivity() {
     private fun loadAlbumMedia() {
         lifecycleScope.launch {
             binding.progressAlbumDetail.visibility = View.VISIBLE
-            val rawMediaItems = mediaRepository.getMediaForAlbum(this@AlbumDetailActivity, bucketId, bucketName)
-            val lockedMedia = AppPreferences.getInstance(this@AlbumDetailActivity).getLockedMediaIds()
-            val mediaItems = rawMediaItems.filter { !lockedMedia.contains(it.id.toString()) }
-
+            val rawMediaItems = mediaRepository.getMediaForAlbum(this@AlbumDetailActivity, bucketId, bucketName, excludeLocked = !isFromVault)
             val appPrefs = AppPreferences.getInstance(this@AlbumDetailActivity)
+            val lockedMedia = appPrefs.getLockedMediaIds()
+            val mediaItems = if (isFromVault) {
+                rawMediaItems
+            } else {
+                rawMediaItems.filter { !lockedMedia.contains(it.id.toString()) }
+            }
+
             val sortedMediaItems = when (appPrefs.sortBy) {
                 AppPreferences.SORT_NEWEST -> mediaItems.sortedByDescending { it.dateAdded }
                 AppPreferences.SORT_OLDEST -> mediaItems.sortedBy { it.dateAdded }

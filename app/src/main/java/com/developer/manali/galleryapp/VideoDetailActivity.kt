@@ -599,6 +599,9 @@ class VideoDetailActivity : BaseActivity() {
         val item = currentVideoItem ?: return
         val appPrefs = com.developer.manali.galleryapp.data.AppPreferences.getInstance(this)
         appPrefs.setLockedMedia(listOf(item.id.toString()), true)
+        com.developer.manali.galleryapp.data.MediaRepository.clearCache()
+        sendBroadcast(android.content.Intent("com.developer.manali.galleryapp.MEDIA_UPDATED"))
+        sendBroadcast(android.content.Intent("com.developer.manali.galleryapp.ALBUMS_UPDATED"))
         Toast.makeText(this, getString(R.string.moved_to_vault), Toast.LENGTH_SHORT).show()
         
         if (currentPosition in 0 until videoList.size) {

@@ -1071,6 +1071,9 @@ class MediaDetailActivity : BaseActivity() {
             val item = mediaList[pos]
             val appPrefs = com.developer.manali.galleryapp.data.AppPreferences.getInstance(this)
             appPrefs.setLockedMedia(listOf(item.id.toString()), true)
+            com.developer.manali.galleryapp.data.MediaRepository.clearCache()
+            sendBroadcast(android.content.Intent("com.developer.manali.galleryapp.MEDIA_UPDATED"))
+            sendBroadcast(android.content.Intent("com.developer.manali.galleryapp.ALBUMS_UPDATED"))
             Toast.makeText(this, getString(R.string.moved_to_vault), Toast.LENGTH_SHORT).show()
 
             val removedItem = mediaList.removeAt(pos)

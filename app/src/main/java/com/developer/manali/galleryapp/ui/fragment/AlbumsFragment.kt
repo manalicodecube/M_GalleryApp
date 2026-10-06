@@ -387,7 +387,7 @@ class AlbumsFragment : Fragment() {
                 val rawAlbums = mediaRepository.getAlbums(safeContext)
                 val appPrefs = com.developer.manali.galleryapp.data.AppPreferences.getInstance(safeContext)
                 val lockedIds = appPrefs.getLockedAlbumIds()
-                val filteredRawAlbums = rawAlbums.filter { !lockedIds.contains(it.bucketId) }
+                val filteredRawAlbums = rawAlbums.filter { !lockedIds.contains(it.bucketId) && !lockedIds.contains(it.bucketName) }
 
                 val sortBy = appPrefs.albumsSortBy
                 when (sortBy) {

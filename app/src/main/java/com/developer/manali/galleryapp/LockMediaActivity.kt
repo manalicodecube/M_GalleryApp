@@ -182,6 +182,9 @@ class LockMediaActivity : BaseActivity() {
                 val set = appPrefs.getLockedMediaIds()
                 set.removeAll(selectedMediaIds.toSet())
                 appPrefs.setLockedMedia(selectedMediaIds, false)
+                MediaRepository.clearCache()
+                sendBroadcast(android.content.Intent("com.developer.manali.galleryapp.MEDIA_UPDATED"))
+                sendBroadcast(android.content.Intent("com.developer.manali.galleryapp.ALBUMS_UPDATED"))
             }
             exitSelectionMode()
             loadLockedData()
@@ -342,6 +345,10 @@ class LockMediaActivity : BaseActivity() {
                 appPrefs.setLockedMedia(mediaIds, false)
             }
 
+            MediaRepository.clearCache()
+            sendBroadcast(android.content.Intent("com.developer.manali.galleryapp.MEDIA_UPDATED"))
+            sendBroadcast(android.content.Intent("com.developer.manali.galleryapp.ALBUMS_UPDATED"))
+
             Toast.makeText(
                 this,
                 getString(R.string.items_unlocked_successfully),
@@ -369,7 +376,7 @@ class LockMediaActivity : BaseActivity() {
             val lockedMediaIds = appPrefs.getLockedMediaIds()
 
             val rawAlbums = mediaRepository.getAlbums(this@LockMediaActivity, false)
-            val filteredAlbums = rawAlbums.filter { lockedAlbumIds.contains(it.bucketId) }
+            val filteredAlbums = rawAlbums.filter { lockedAlbumIds.contains(it.bucketId) || lockedAlbumIds.contains(it.bucketName) }
 
             val rawPhotos = mediaRepository.getPhotos(this@LockMediaActivity)
             val rawVideos = mediaRepository.getVideos(this@LockMediaActivity)
@@ -805,6 +812,9 @@ class LockMediaActivity : BaseActivity() {
                         val set = appPrefs.getLockedMediaIds()
                         set.removeAll(selectedMediaIds.toSet())
                         appPrefs.setLockedMedia(selectedMediaIds, false)
+                        MediaRepository.clearCache()
+                        sendBroadcast(android.content.Intent("com.developer.manali.galleryapp.MEDIA_UPDATED"))
+                        sendBroadcast(android.content.Intent("com.developer.manali.galleryapp.ALBUMS_UPDATED"))
                         exitSelectionMode()
                         loadLockedData()
                     }
@@ -812,5 +822,12 @@ class LockMediaActivity : BaseActivity() {
             }
         }
         dialog.show()
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        MediaRepository.clearCache()
+        sendBroadcast(android.content.Intent("com.developer.manali.galleryapp.MEDIA_UPDATED"))
+        sendBroadcast(android.content.Intent("com.developer.manali.galleryapp.ALBUMS_UPDATED"))
     }
 }
