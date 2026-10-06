@@ -211,4 +211,9 @@
     <string name="unlock">अनलॉक करें</string>
     <string name="please_wait_for_video_to_load">कृपया वीडियो लोड होने तक प्रतीक्षा करें</string>
     <string name="equalizer_not_supported_on_this_device">इस डिवाइस पर इक्वलाइज़र समर्थित नहीं है</string>
+    <string name="album_already_exists">इस नाम का एल्बम पहले से मौजूद है</string>
+    <string name="loading_ad">विज्ञापन लोड हो रहा है…</string>
+    <string name="hidden_album_is_locked">छिपा हुआ एल्बम लॉक है</string>
+    <string name="permission_required_to_rename">इस फ़ाइल का नाम बदलने के लिए अनुमति आवश्यक है</string>
+
 </resources>

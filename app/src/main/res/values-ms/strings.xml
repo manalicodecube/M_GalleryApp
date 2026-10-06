@@ -212,4 +212,7 @@
     <string name="unlock">Buka kunci</string>
     <string name="please_wait_for_video_to_load">Sila tunggu video dimuatkan</string>
     <string name="equalizer_not_supported_on_this_device">Equalizer tidak disokong pada peranti ini</string>
+    <string name="album_already_exists">Album dengan nama ini sudah wujud</string>
+    <string name="loading_ad">Memuatkan iklan…</string>
+    <string name="permission_required_to_rename">Kebenaran diperlukan untuk menamakan semula fail ini</string>
 </resources>

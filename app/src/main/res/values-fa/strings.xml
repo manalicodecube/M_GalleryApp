@@ -213,4 +213,7 @@
     <string name="unlock">بازگشایی</string>
     <string name="please_wait_for_video_to_load">لطفاً منتظر بارگذاری ویدیو باشید</string>
     <string name="equalizer_not_supported_on_this_device">اکولایزر در این دستگاه پشتیبانی نمی‌شود</string>
+    <string name="album_already_exists">آلبومی با این نام از قبل وجود دارد</string>
+    <string name="loading_ad">در حال بارگذاری تبلیغ…</string>
+    <string name="permission_required_to_rename">برای تغییر نام این فایل، مجوز لازم است</string>
 </resources>

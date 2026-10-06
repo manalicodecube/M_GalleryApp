@@ -212,4 +212,8 @@
     <string name="unlock">Разблокировать</string>
     <string name="please_wait_for_video_to_load">Пожалуйста, подождите загрузки видео</string>
     <string name="equalizer_not_supported_on_this_device">Эквалайзер не поддерживается на этом устройстве</string>
+    <string name="album_already_exists">Альбом с таким названием уже существует</string>
+    <string name="album">Альбом</string>
+    <string name="loading_ad">Загрузка рекламы…</string>
+    <string name="permission_required_to_rename">Для переименования этого файла требуется разрешение</string>
 </resources>

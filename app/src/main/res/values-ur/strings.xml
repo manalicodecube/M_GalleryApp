@@ -213,4 +213,7 @@
     <string name="unlock">انلاک کریں</string>
     <string name="please_wait_for_video_to_load">براہِ کرم ویڈیو لوڈ ہونے کا انتظار کریں</string>
     <string name="equalizer_not_supported_on_this_device">اس ڈیوائس پر ایکولائزر سپورٹ نہیں ہے</string>
+    <string name="album_already_exists">اس نام کا البم پہلے سے موجود ہے</string>
+    <string name="loading_ad">اشتہار لوڈ ہو رہا ہے…</string>
+    <string name="permission_required_to_rename">اس فائل کا نام تبدیل کرنے کے لیے اجازت درکار ہے</string>
 </resources>

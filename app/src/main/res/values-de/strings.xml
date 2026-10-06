@@ -214,4 +214,7 @@
     <string name="unlock">Entsperren</string>
     <string name="please_wait_for_video_to_load">Bitte warten Sie, bis das Video geladen ist</string>
     <string name="equalizer_not_supported_on_this_device">Equalizer wird auf diesem Gerät nicht unterstützt</string>
+    <string name="album_already_exists">Ein Album mit diesem Namen existiert bereits</string>
+    <string name="loading_ad">Anzeige wird geladen…</string>
+    <string name="permission_required_to_rename">Zum Umbenennen dieser Datei ist eine Berechtigung erforderlich</string>
 </resources>

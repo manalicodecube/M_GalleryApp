@@ -211,4 +211,7 @@
     <string name="unlock">ロック解除</string>
     <string name="please_wait_for_video_to_load">動画の読み込みをお待ちください</string>
     <string name="equalizer_not_supported_on_this_device">このデバイスではイコライザーはサポートされていません</string>
+    <string name="album_already_exists">この名前のアルバムはすでに存在します</string>
+    <string name="loading_ad">広告を読み込んでいます…</string>
+    <string name="permission_required_to_rename">このファイルの名前を変更するには権限が必要です</string>
 </resources>

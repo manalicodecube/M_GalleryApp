@@ -213,4 +213,7 @@
     <string name="unlock">잠금 해제</string>
     <string name="please_wait_for_video_to_load">동영상이 로드될 때까지 기다려주세요</string>
     <string name="equalizer_not_supported_on_this_device">이 기기에서는 이퀄라이저가 지원되지 않습니다</string>
+    <string name="album_already_exists">이 이름의 앨범이 이미 존재합니다</string>
+    <string name="loading_ad">광고를 불러오는 중…</string>
+    <string name="permission_required_to_rename">이 파일의 이름을 변경하려면 권한이 필요합니다</string>
 </resources>

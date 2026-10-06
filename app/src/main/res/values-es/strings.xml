@@ -213,4 +213,7 @@
     <string name="unlock">Desbloquear</string>
     <string name="please_wait_for_video_to_load">Espera a que se cargue el vídeo</string>
     <string name="equalizer_not_supported_on_this_device">Ecualizador no compatible con este dispositivo</string>
+    <string name="album_already_exists">Ya existe un álbum con este nombre</string>
+    <string name="loading_ad">Cargando anuncio…</string>
+    <string name="permission_required_to_rename">Se requiere permiso para cambiar el nombre de este archivo</string>
 </resources>

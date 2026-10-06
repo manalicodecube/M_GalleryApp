@@ -210,6 +210,9 @@
     <string name="media">Multimedia</string>
     <string name="move_to_vault">Sposta nel caveau</string>
     <string name="unlock">Sblocca</string>
+    <string name="album_already_exists">Esiste già un album con questo nome</string>
     <string name="please_wait_for_video_to_load">Attendi il caricamento del video</string>
     <string name="equalizer_not_supported_on_this_device">Equalizzatore non supportato su questo dispositivo</string>
+    <string name="loading_ad">Caricamento dell\'annuncio…</string>
+    <string name="permission_required_to_rename">È necessaria l\'autorizzazione per rinominare questo file</string>
 </resources>
