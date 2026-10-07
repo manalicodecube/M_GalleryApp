@@ -5,11 +5,12 @@ plugins {
 }
 
 android {
-    namespace = "com.developer.manali.galleryapp"
+    namespace = "com.imagefolders.photoorganizer.mediagallery"
     compileSdk = 36
 
     defaultConfig {
-        applicationId = "com.developer.manali.galleryapp"
+//        applicationId = "com.developer.manali.galleryapp"
+        applicationId = "com.imagefolders.photoorganizer.mediagallery"
         minSdk = 24
         targetSdk = 36
         versionCode = 1
