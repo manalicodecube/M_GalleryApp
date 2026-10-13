@@ -24,7 +24,8 @@
             <ImageView
                 android:layout_width="80dp"
                 android:layout_height="80dp"
-                android:src="@drawable/ic_lumina_logo" />
+                android:src="@mipmap/ic_launcher" />
+
 
             <TextView
                 android:layout_width="wrap_content"
@@ -41,6 +42,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="2dp"
                 android:fontFamily="sans-serif-medium"
+                android:visibility="gone"
                 android:text="@string/smart_media_manager"
                 android:textColor="@color/lumina_text_secondary"
                 android:textSize="12sp" />
