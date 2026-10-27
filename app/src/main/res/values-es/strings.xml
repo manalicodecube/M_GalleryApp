@@ -216,4 +216,23 @@
     <string name="album_already_exists">Ya existe un álbum con este nombre</string>
     <string name="loading_ad">Cargando anuncio…</string>
     <string name="permission_required_to_rename">Se requiere permiso para cambiar el nombre de este archivo</string>
+    <string name="caller_id_alerts">Identificador de llamadas y alertas de llamadas</string>
+    <string name="caller_id_desc">Necesario para detectar llamadas e identificar a quienes llaman y reciben llamadas.</string>
+    <string name="display_over_apps">Mostrar sobre otras aplicaciones</string>
+    <string name="display_over_apps_desc">Necesario para mostrar las pantallas del identificador de llamadas y las acciones rápidas posteriores a las llamadas.</string>
+    <string name="overlay_permission_title">Mostrar sobre otras aplicaciones</string>
+    <string name="overlay_permission_desc">Activa "Mostrar sobre otras aplicaciones" en Ajustes para que aparezcan las pantallas del identificador de llamadas y las pantallas posteriores a las llamadas.</string>
+    <string name="enable">Activar</string>
+    <string name="skip">Omitir</string>
+    <string name="camera_access">Acceso a la cámara</string>
+    <string name="camera_access_desc">Captura fotos y vídeos directamente desde la galería</string>
+    <string name="camera_permission_dialog_desc">Se necesita acceso a la cámara para capturar fotos y vídeos directamente desde la aplicación y guardarlos en la galería.</string>
+    <string name="caller_id_dialog_desc">El identificador de llamadas te ayuda a identificar las llamadas entrantes y salientes, consultar los detalles de las llamadas y crear recordatorios o enviar mensajes rápidamente después de las llamadas. Requiere los permisos de llamadas telefónicas y de mostrar sobre otras aplicaciones.</string>
+    <string name="storage_permission_dialog_desc">La galería necesita acceso a fotos y archivos multimedia para mostrar, organizar y administrar tus álbumes y archivos multimedia.</string>
+    <string name="permission_required">Permiso necesario</string>
+    <string name="allow_access">Permitir acceso</string>
+    <string name="open_settings">Abrir ajustes</string>
+    <string name="active">Activo</string>
+    <string name="not_enabled">No activado</string>
+
 </resources>

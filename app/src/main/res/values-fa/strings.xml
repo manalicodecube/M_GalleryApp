@@ -216,4 +216,22 @@
     <string name="album_already_exists">آلبومی با این نام از قبل وجود دارد</string>
     <string name="loading_ad">در حال بارگذاری تبلیغ…</string>
     <string name="permission_required_to_rename">برای تغییر نام این فایل، مجوز لازم است</string>
+    <string name="caller_id_alerts">شناسه تماس‌گیرنده و هشدارهای تماس</string>
+    <string name="caller_id_desc">برای شناسایی تماس‌ها و تشخیص تماس‌گیرندگان ورودی و خروجی ضروری است.</string>
+    <string name="display_over_apps">نمایش روی سایر برنامه‌ها</string>
+    <string name="display_over_apps_desc">برای نمایش صفحه‌های شناسه تماس‌گیرنده و اقدامات سریع پس از تماس ضروری است.</string>
+    <string name="overlay_permission_title">نمایش روی سایر برنامه‌ها</string>
+    <string name="overlay_permission_desc">لطفاً گزینه «نمایش روی سایر برنامه‌ها» را در تنظیمات فعال کنید تا صفحه‌های شناسه تماس‌گیرنده و صفحه‌های پس از تماس نمایش داده شوند.</string>
+    <string name="enable">فعال کردن</string>
+    <string name="skip">رد کردن</string>
+    <string name="camera_access">دسترسی به دوربین</string>
+    <string name="camera_access_desc">عکس‌ها و ویدیوها را مستقیماً در گالری ثبت کنید</string>
+    <string name="camera_permission_dialog_desc">برای ثبت مستقیم عکس‌ها و ویدیوها در برنامه و ذخیره آن‌ها در گالری، دسترسی به دوربین ضروری است.</string>
+    <string name="caller_id_dialog_desc">شناسه تماس‌گیرنده به شما کمک می‌کند تماس‌گیرندگان ورودی و خروجی را شناسایی کنید، جزئیات تماس‌ها را ببینید و پس از تماس به‌سرعت یادآور ایجاد کنید یا پیام بفرستید. این قابلیت به مجوز تماس تلفنی و نمایش روی سایر برنامه‌ها نیاز دارد.</string>
+    <string name="storage_permission_dialog_desc">گالری برای نمایش، سازمان‌دهی و مدیریت آلبوم‌ها و فایل‌های رسانه‌ای شما به دسترسی به عکس‌ها و رسانه‌ها نیاز دارد.</string>
+    <string name="permission_required">مجوز لازم است</string>
+    <string name="allow_access">اجازه دسترسی</string>
+    <string name="open_settings">باز کردن تنظیمات</string>
+    <string name="active">فعال</string>
+    <string name="not_enabled">فعال نیست</string>
 </resources>

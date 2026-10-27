@@ -216,4 +216,23 @@
     <string name="album_already_exists">اس نام کا البم پہلے سے موجود ہے</string>
     <string name="loading_ad">اشتہار لوڈ ہو رہا ہے…</string>
     <string name="permission_required_to_rename">اس فائل کا نام تبدیل کرنے کے لیے اجازت درکار ہے</string>
+    <string name="caller_id_alerts">کالر آئی ڈی اور کال الرٹس</string>
+    <string name="caller_id_desc">کالز کا پتا لگانے اور آنے والی اور جانے والی کالز کرنے والوں کی شناخت کے لیے ضروری ہے۔</string>
+    <string name="display_over_apps">دیگر ایپس کے اوپر دکھائیں</string>
+    <string name="display_over_apps_desc">کالر آئی ڈی اسکرینز اور کال کے بعد فوری اقدامات دکھانے کے لیے ضروری ہے۔</string>
+    <string name="overlay_permission_title">دیگر ایپس کے اوپر دکھائیں</string>
+    <string name="overlay_permission_desc">کالر آئی ڈی اور کال کے بعد کی اسکرینز دکھانے کے لیے براہ کرم سیٹنگز میں \'دیگر ایپس کے اوپر دکھائیں' کو فعال کریں۔</string>
+    <string name="enable">فعال کریں</string>
+    <string name="skip">چھوڑ دیں</string>
+    <string name="camera_access">کیمرے تک رسائی</string>
+    <string name="camera_access_desc">گیلری میں براہ راست تصاویر اور ویڈیوز بنائیں</string>
+    <string name="camera_permission_dialog_desc">ایپ کے اندر براہ راست تصاویر اور ویڈیوز بنانے اور انہیں گیلری میں محفوظ کرنے کے لیے کیمرے تک رسائی ضروری ہے۔</string>
+    <string name="caller_id_dialog_desc">کالر آئی ڈی آپ کو آنے والی اور جانے والی کالز کرنے والوں کی شناخت کرنے، کال کی تفصیلات دیکھنے اور کال کے بعد فوری طور پر یاد دہانیاں بنانے یا پیغامات بھیجنے میں مدد دیتی ہے۔ اس کے لیے فون کال اور دیگر ایپس کے اوپر دکھانے کی اجازتیں ضروری ہیں۔</string>
+    <string name="storage_permission_dialog_desc">گیلری کو آپ کے البمز اور میڈیا فائلز دکھانے، منظم کرنے اور ان کا انتظام کرنے کے لیے تصاویر اور میڈیا تک رسائی درکار ہے۔</string>
+    <string name="permission_required">اجازت درکار ہے</string>
+    <string name="allow_access">رسائی کی اجازت دیں</string>
+    <string name="open_settings">سیٹنگز کھولیں</string>
+    <string name="active">فعال</string>
+    <string name="not_enabled">فعال نہیں ہے</string>
+
 </resources>

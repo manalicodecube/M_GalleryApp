@@ -134,4 +134,28 @@ class PreferencesUtility private constructor(context: Context) {
     fun setAdData(adData: String) {
         preferences.edit().putString("AdData", adData).apply()
     }
+
+    fun setCameraPermissionRequested(requested: Boolean) {
+        preferences.edit().putBoolean("pref_camera_permission_requested", requested).apply()
+    }
+
+    fun isCameraPermissionRequested(): Boolean {
+        return preferences.getBoolean("pref_camera_permission_requested", false)
+    }
+
+    fun setStoragePermissionRequested(requested: Boolean) {
+        preferences.edit().putBoolean("pref_storage_permission_requested", requested).apply()
+    }
+
+    fun isStoragePermissionRequested(): Boolean {
+        return preferences.getBoolean("pref_storage_permission_requested", false)
+    }
+
+    fun setPermissionRequestedBefore(requested: Boolean) {
+        preferences.edit().putBoolean("pref_permission_requested_before", requested).apply()
+    }
+
+    fun isPermissionRequestedBefore(): Boolean {
+        return preferences.getBoolean("pref_permission_requested_before", false)
+    }
 }

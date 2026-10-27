@@ -39,6 +39,11 @@ class VideosFragment : Fragment() {
         currentSpanCount = if (appPrefs.isListView) 1 else appPrefs.videosGridColumns
         setupRecyclerView()
         setupSwipeRefresh()
+        binding.layoutEmptyVideos.setOnClickListener {
+            if (!com.imagefolders.photoorganizer.mediagallery.Util.hasStoragePermissions(requireContext())) {
+                (activity as? com.imagefolders.photoorganizer.mediagallery.MainActivity)?.showStoragePermissionDialog { refreshData() }
+            }
+        }
         loadVideos()
     }
 
@@ -283,7 +288,12 @@ class VideosFragment : Fragment() {
             com.imagefolders.photoorganizer.mediagallery.R.color.lumina_primary
         )
         binding.swipeRefreshVideos.setOnRefreshListener {
-            loadVideos()
+            if (!com.imagefolders.photoorganizer.mediagallery.Util.hasStoragePermissions(requireContext())) {
+                binding.swipeRefreshVideos.isRefreshing = false
+                (activity as? com.imagefolders.photoorganizer.mediagallery.MainActivity)?.showStoragePermissionDialog { refreshData() }
+            } else {
+                loadVideos()
+            }
         }
     }
 

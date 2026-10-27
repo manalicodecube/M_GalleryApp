@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@drawable/bg_dialog_rounded"
+    android:gravity="center_horizontal"
+    android:orientation="vertical"
+    android:paddingHorizontal="24dp"
+    android:paddingTop="26dp"
+    android:paddingBottom="24dp">
+
+    <ImageView
+        android:id="@+id/ivPermissionIcon"
+        android:layout_width="52dp"
+        android:layout_height="52dp"
+        android:background="@drawable/bg_circle_icon_blue"
+        android:contentDescription="@string/permission_required"
+        android:padding="13dp"
+        android:src="@drawable/camera"
+        app:tint="@color/lumina_primary" />
+
+    <TextView
+        android:id="@+id/tvPermissionTitle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:fontFamily="sans-serif-black"
+        android:gravity="center"
+        android:text="@string/permission_required"
+        android:textColor="@color/lumina_text_title"
+        android:textSize="20sp"
+        android:textStyle="bold" />
+
+    <TextView
+        android:id="@+id/tvPermissionDesc"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:fontFamily="sans-serif"
+        android:gravity="center"
+        android:lineSpacingMultiplier="1.25"
+        android:text="@string/camera_permission_dialog_desc"
+        android:textColor="@color/lumina_text_body"
+        android:textSize="14sp" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="24dp"
+        android:orientation="horizontal"
+        android:weightSum="2">
+
+        <TextView
+            android:id="@+id/btnCancel"
+            android:layout_width="0dp"
+            android:layout_height="48dp"
+            android:layout_marginEnd="8dp"
+            android:layout_weight="1"
+            android:background="@drawable/bg_dialog_cancel_button"
+            android:clickable="true"
+            android:focusable="true"
+            android:fontFamily="sans-serif-bold"
+            android:gravity="center"
+            android:text="@string/cancel"
+            android:textColor="#4B5563"
+            android:textSize="15sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/btnAllowAccess"
+            android:layout_width="0dp"
+            android:layout_height="48dp"
+            android:layout_marginStart="8dp"
+            android:layout_weight="1"
+            android:background="@drawable/bg_lumina_primary_button"
+            android:clickable="true"
+            android:focusable="true"
+            android:fontFamily="sans-serif-bold"
+            android:gravity="center"
+            android:text="@string/allow_access"
+            android:textColor="@color/white"
+            android:textSize="15sp"
+            android:textStyle="bold" />
+
+    </LinearLayout>
+
+</LinearLayout>

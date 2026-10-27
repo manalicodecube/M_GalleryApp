@@ -215,4 +215,22 @@
     <string name="album_already_exists">Album dengan nama ini sudah wujud</string>
     <string name="loading_ad">Memuatkan iklan…</string>
     <string name="permission_required_to_rename">Kebenaran diperlukan untuk menamakan semula fail ini</string>
+    <string name="caller_id_alerts">ID Pemanggil dan Amaran Panggilan</string>
+    <string name="caller_id_desc">Diperlukan untuk mengesan panggilan dan mengenal pasti pemanggil bagi panggilan masuk dan keluar.</string>
+    <string name="display_over_apps">Paparkan di Atas Aplikasi Lain</string>
+    <string name="display_over_apps_desc">Diperlukan untuk memaparkan skrin ID Pemanggil dan tindakan pantas selepas panggilan.</string>
+    <string name="overlay_permission_title">Paparkan di Atas Aplikasi Lain</string>
+    <string name="overlay_permission_desc">Sila aktifkan \'Paparkan di atas aplikasi lain' dalam Tetapan supaya skrin ID Pemanggil dan skrin selepas panggilan boleh dipaparkan.</string>
+    <string name="enable">Aktifkan</string>
+    <string name="skip">Langkau</string>
+    <string name="camera_access">Akses Kamera</string>
+    <string name="camera_access_desc">Ambil foto dan video terus dalam galeri</string>
+    <string name="camera_permission_dialog_desc">Akses kamera diperlukan untuk mengambil foto dan video secara langsung dalam aplikasi dan menyimpannya ke galeri anda.</string>
+    <string name="caller_id_dialog_desc">ID Pemanggil membantu anda mengenal pasti pemanggil bagi panggilan masuk dan keluar, melihat butiran panggilan serta membuat peringatan atau menghantar mesej dengan pantas selepas panggilan. Ciri ini memerlukan kebenaran Panggilan Telefon dan Paparkan di Atas Aplikasi Lain.</string>
+    <string name="storage_permission_dialog_desc">Galeri memerlukan akses kepada foto dan media untuk memaparkan, menyusun dan mengurus album serta fail media anda.</string>
+    <string name="permission_required">Kebenaran Diperlukan</string>
+    <string name="allow_access">Benarkan Akses</string>
+    <string name="open_settings">Buka Tetapan</string>
+    <string name="active">Aktif</string>
+    <string name="not_enabled">Tidak Diaktifkan</string>
 </resources>

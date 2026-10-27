@@ -216,4 +216,22 @@
     <string name="album_already_exists">Já existe um álbum com este nome</string>
     <string name="loading_ad">Carregando anúncio…</string>
     <string name="permission_required_to_rename">É necessária permissão para renomear este arquivo</string>
+    <string name="caller_id_alerts">Identificação de chamadas e alertas de chamadas</string>
+    <string name="caller_id_desc">Necessário para detetar chamadas e identificar os interlocutores nas chamadas recebidas e efetuadas.</string>
+    <string name="display_over_apps">Mostrar sobre outras aplicações</string>
+    <string name="display_over_apps_desc">Necessário para apresentar os ecrãs de identificação de chamadas e as ações rápidas após as chamadas.</string>
+    <string name="overlay_permission_title">Mostrar sobre outras aplicações</string>
+    <string name="overlay_permission_desc">Ative a opção "Mostrar sobre outras aplicações" nas Definições para permitir a apresentação dos ecrãs de identificação de chamadas e dos ecrãs após as chamadas.</string>
+    <string name="enable">Ativar</string>
+    <string name="skip">Ignorar</string>
+    <string name="camera_access">Acesso à câmara</string>
+    <string name="camera_access_desc">Capture fotografias e vídeos diretamente na galeria</string>
+    <string name="camera_permission_dialog_desc">O acesso à câmara é necessário para capturar fotografias e vídeos diretamente na aplicação e guardá-los na sua galeria.</string>
+    <string name="caller_id_dialog_desc">A identificação de chamadas ajuda a identificar os interlocutores nas chamadas recebidas e efetuadas, consultar os detalhes das chamadas e criar rapidamente lembretes ou enviar mensagens após as chamadas. Requer as permissões de chamadas telefónicas e de apresentação sobre outras aplicações.</string>
+    <string name="storage_permission_dialog_desc">A galeria necessita de acesso a fotografias e conteúdos multimédia para apresentar, organizar e gerir os seus álbuns e ficheiros multimédia.</string>
+    <string name="permission_required">Permissão necessária</string>
+    <string name="allow_access">Permitir acesso</string>
+    <string name="open_settings">Abrir definições</string>
+    <string name="active">Ativo</string>
+    <string name="not_enabled">Não ativado</string>
 </resources>

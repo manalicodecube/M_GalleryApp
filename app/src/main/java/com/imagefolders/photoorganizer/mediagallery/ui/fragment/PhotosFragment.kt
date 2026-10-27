@@ -40,6 +40,11 @@ class PhotosFragment : Fragment() {
         currentSpanCount = if (appPrefs.isListView) 1 else appPrefs.photosGridColumns
         setupRecyclerView()
         setupSwipeRefresh()
+        binding.layoutEmptyPhotos.setOnClickListener {
+            if (!com.imagefolders.photoorganizer.mediagallery.Util.hasStoragePermissions(requireContext())) {
+                (activity as? com.imagefolders.photoorganizer.mediagallery.MainActivity)?.showStoragePermissionDialog { refreshData() }
+            }
+        }
         loadPhotos()
     }
 
@@ -283,7 +288,12 @@ class PhotosFragment : Fragment() {
             com.imagefolders.photoorganizer.mediagallery.R.color.lumina_primary
         )
         binding.swipeRefreshPhotos.setOnRefreshListener {
-            loadPhotos()
+            if (!com.imagefolders.photoorganizer.mediagallery.Util.hasStoragePermissions(requireContext())) {
+                binding.swipeRefreshPhotos.isRefreshing = false
+                (activity as? com.imagefolders.photoorganizer.mediagallery.MainActivity)?.showStoragePermissionDialog { refreshData() }
+            } else {
+                loadPhotos()
+            }
         }
     }
 

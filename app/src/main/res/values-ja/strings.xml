@@ -214,4 +214,23 @@
     <string name="album_already_exists">この名前のアルバムはすでに存在します</string>
     <string name="loading_ad">広告を読み込んでいます…</string>
     <string name="permission_required_to_rename">このファイルの名前を変更するには権限が必要です</string>
+    <string name="caller_id_alerts">発信者番号と通話アラート</string>
+    <string name="caller_id_desc">通話を検出し、着信および発信の相手を識別するために必要です。</string>
+    <string name="display_over_apps">他のアプリの上に重ねて表示</string>
+    <string name="display_over_apps_desc">発信者番号の画面や通話後のクイックアクションを表示するために必要です。</string>
+    <string name="overlay_permission_title">他のアプリの上に重ねて表示</string>
+    <string name="overlay_permission_desc">発信者番号の画面や通話後の画面を表示するには、設定で「他のアプリの上に重ねて表示」を有効にしてください。</string>
+    <string name="enable">有効にする</string>
+    <string name="skip">スキップ</string>
+    <string name="camera_access">カメラへのアクセス</string>
+    <string name="camera_access_desc">ギャラリー内で写真や動画を直接撮影します</string>
+    <string name="camera_permission_dialog_desc">アプリ内で写真や動画を直接撮影し、ギャラリーに保存するには、カメラへのアクセスが必要です。</string>
+    <string name="caller_id_dialog_desc">発信者番号機能を使用すると、着信および発信の相手を識別し、通話の詳細を確認したり、通話後にリマインダーを作成したりメッセージをすばやく送信したりできます。この機能には、電話と他のアプリの上に重ねて表示する権限が必要です。</string>
+    <string name="storage_permission_dialog_desc">ギャラリーでアルバムやメディアファイルを表示、整理、管理するには、写真とメディアへのアクセスが必要です。</string>
+    <string name="permission_required">権限が必要です</string>
+    <string name="allow_access">アクセスを許可</string>
+    <string name="open_settings">設定を開く</string>
+    <string name="active">有効</string>
+    <string name="not_enabled">無効</string>
+
 </resources>

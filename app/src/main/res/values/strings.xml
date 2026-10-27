@@ -245,4 +245,27 @@
     <string name="loading_ad">Loading Ad…</string>
     <string name="hidden_album_is_locked">Hidden album is locked</string>
     <string name="permission_required_to_rename">Permission is required to rename this file</string>
+
+
+    <string name="caller_id_alerts">Caller ID &amp; Call Alerts</string>
+    <string name="caller_id_desc">Required to detect calls and identify incoming and outgoing callers.</string>
+    <string name="display_over_apps">Display Over Other Apps</string>
+    <string name="display_over_apps_desc">Required to show caller ID screens and after-call quick actions.</string>
+    <string name="overlay_permission_title">Display Over Other Apps</string>
+    <string name="overlay_permission_desc">Please enable \'Display over other apps\' in Settings so Caller ID and after-call screens can appear.</string>
+    <string name="enable">Enable</string>
+    <string name="skip">Skip</string>
+    <string name="camera_access">Camera Access</string>
+    <string name="camera_access_desc">Capture photos and videos directly within the gallery</string>
+    <string name="camera_permission_dialog_desc">Camera access is required to capture photos and videos directly within the app and save them to your gallery.</string>
+    <string name="caller_id_dialog_desc">Caller ID helps you identify incoming and outgoing callers, view call details, and quickly create reminders or send messages after calls. It requires Phone Call and Display Over Other Apps permissions.</string>
+    <string name="storage_permission_dialog_desc">Gallery requires access to photos and media to display, organize, and manage your albums and media files.</string>
+    <string name="permission_required">Permission Required</string>
+    <string name="allow_access">Allow Access</string>
+    <string name="open_settings">Open Settings</string>
+    <string name="active">Active</string>
+    <string name="not_enabled">Not Enabled</string>
+
+
+
 </resources>

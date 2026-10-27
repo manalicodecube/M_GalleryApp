@@ -216,4 +216,22 @@
     <string name="album_already_exists">이 이름의 앨범이 이미 존재합니다</string>
     <string name="loading_ad">광고를 불러오는 중…</string>
     <string name="permission_required_to_rename">이 파일의 이름을 변경하려면 권한이 필요합니다</string>
+    <string name="caller_id_alerts">발신자 ID 및 통화 알림</string>
+    <string name="caller_id_desc">통화를 감지하고 수신 및 발신 상대방을 식별하는 데 필요합니다.</string>
+    <string name="display_over_apps">다른 앱 위에 표시</string>
+    <string name="display_over_apps_desc">발신자 ID 화면과 통화 후 빠른 작업을 표시하는 데 필요합니다.</string>
+    <string name="overlay_permission_title">다른 앱 위에 표시</string>
+    <string name="overlay_permission_desc">발신자 ID 및 통화 후 화면을 표시하려면 설정에서 \'다른 앱 위에 표시'를 활성화하세요.</string>
+    <string name="enable">활성화</string>
+    <string name="skip">건너뛰기</string>
+    <string name="camera_access">카메라 액세스</string>
+    <string name="camera_access_desc">갤러리에서 사진과 동영상을 바로 촬영합니다</string>
+    <string name="camera_permission_dialog_desc">앱에서 사진과 동영상을 직접 촬영하고 갤러리에 저장하려면 카메라 액세스 권한이 필요합니다.</string>
+    <string name="caller_id_dialog_desc">발신자 ID를 사용하면 수신 및 발신 상대방을 식별하고 통화 세부정보를 확인하며 통화 후 알림을 만들거나 메시지를 빠르게 보낼 수 있습니다. 이 기능을 사용하려면 전화 통화 및 다른 앱 위에 표시 권한이 필요합니다.</string>
+    <string name="storage_permission_dialog_desc">갤러리에서 앨범과 미디어 파일을 표시하고 정리 및 관리하려면 사진과 미디어에 대한 액세스 권한이 필요합니다.</string>
+    <string name="permission_required">권한 필요</string>
+    <string name="allow_access">액세스 허용</string>
+    <string name="open_settings">설정 열기</string>
+    <string name="active">활성</string>
+    <string name="not_enabled">활성화되지 않음</string>
 </resources>

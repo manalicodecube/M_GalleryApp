@@ -216,4 +216,23 @@
     <string name="album">Альбом</string>
     <string name="loading_ad">Загрузка рекламы…</string>
     <string name="permission_required_to_rename">Для переименования этого файла требуется разрешение</string>
+    <string name="caller_id_alerts">Определитель номера и уведомления о звонках</string>
+    <string name="caller_id_desc">Необходимо для обнаружения вызовов и определения абонентов при входящих и исходящих звонках.</string>
+    <string name="display_over_apps">Поверх других приложений</string>
+    <string name="display_over_apps_desc">Необходимо для отображения экранов определителя номера и быстрых действий после звонка.</string>
+    <string name="overlay_permission_title">Поверх других приложений</string>
+    <string name="overlay_permission_desc">Включите параметр «Поверх других приложений» в настройках, чтобы отображались экраны определителя номера и экраны после звонка.</string>
+    <string name="enable">Включить</string>
+    <string name="skip">Пропустить</string>
+    <string name="camera_access">Доступ к камере</string>
+    <string name="camera_access_desc">Делайте фото и записывайте видео прямо в галерее</string>
+    <string name="camera_permission_dialog_desc">Доступ к камере необходим для съёмки фото и видео непосредственно в приложении и сохранения их в галерее.</string>
+    <string name="caller_id_dialog_desc">Определитель номера помогает распознавать абонентов при входящих и исходящих звонках, просматривать сведения о вызовах, быстро создавать напоминания и отправлять сообщения после звонков. Для этого необходимы разрешения на телефонные вызовы и отображение поверх других приложений.</string>
+    <string name="storage_permission_dialog_desc">Галерее необходим доступ к фотографиям и медиафайлам для просмотра, организации и управления альбомами и медиафайлами.</string>
+    <string name="permission_required">Требуется разрешение</string>
+    <string name="allow_access">Разрешить доступ</string>
+    <string name="open_settings">Открыть настройки</string>
+    <string name="active">Активно</string>
+    <string name="not_enabled">Не включено</string>
+
 </resources>

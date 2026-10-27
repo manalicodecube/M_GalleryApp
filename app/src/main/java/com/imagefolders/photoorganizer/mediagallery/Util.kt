@@ -16,6 +16,10 @@ object Util {
     private val arrLanguageList: MutableList<LanguagesModel> = ArrayList()
 
     fun hasRequiredPermissions(context: Context): Boolean {
+        return hasStoragePermissions(context)
+    }
+
+    fun hasStoragePermissions(context: Context): Boolean {
         return if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
             val hasImages = androidx.core.content.ContextCompat.checkSelfPermission(
                 context,
@@ -51,6 +55,47 @@ object Util {
                 android.Manifest.permission.READ_EXTERNAL_STORAGE
             ) == android.content.pm.PackageManager.PERMISSION_GRANTED
         }
+    }
+
+    fun hasCameraPermission(context: Context): Boolean {
+        return androidx.core.content.ContextCompat.checkSelfPermission(
+            context,
+            android.Manifest.permission.CAMERA
+        ) == android.content.pm.PackageManager.PERMISSION_GRANTED
+    }
+
+    fun hasAllPermissions(context: Context): Boolean {
+        return hasStoragePermissions(context) && hasCameraPermission(context)
+    }
+
+    fun getStoragePermissions(): Array<String> {
+        val permissions = mutableListOf<String>()
+        when {
+            android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.UPSIDE_DOWN_CAKE -> {
+                permissions.add(android.Manifest.permission.READ_MEDIA_IMAGES)
+                permissions.add(android.Manifest.permission.READ_MEDIA_VIDEO)
+                permissions.add(android.Manifest.permission.READ_MEDIA_VISUAL_USER_SELECTED)
+            }
+            android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU -> {
+                permissions.add(android.Manifest.permission.READ_MEDIA_IMAGES)
+                permissions.add(android.Manifest.permission.READ_MEDIA_VIDEO)
+            }
+            else -> {
+                permissions.add(android.Manifest.permission.READ_EXTERNAL_STORAGE)
+            }
+        }
+        return permissions.toTypedArray()
+    }
+
+    fun getMissingPermissions(context: Context): Array<String> {
+        val missing = mutableListOf<String>()
+        if (!hasCameraPermission(context)) {
+            missing.add(android.Manifest.permission.CAMERA)
+        }
+        if (!hasStoragePermissions(context)) {
+            missing.addAll(getStoragePermissions())
+        }
+        return missing.toTypedArray()
     }
 
     fun changeLanguage(activity: Activity) {

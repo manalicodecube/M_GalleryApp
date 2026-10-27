@@ -98,7 +98,7 @@ class LanguageSelectActivity : BaseActivity() {
                 PreferencesUtility.getInstance(this@LanguageSelectActivity)
                     .setLanguageSelectionShown(true)
 
-                if (!Util.hasRequiredPermissions(this@LanguageSelectActivity)) {
+                if (!Util.hasAllPermissions(this@LanguageSelectActivity)) {
                     val intent = Intent(this@LanguageSelectActivity, PermissionActivity::class.java)
                     intent.flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_NEW_TASK
                     startActivity(intent)

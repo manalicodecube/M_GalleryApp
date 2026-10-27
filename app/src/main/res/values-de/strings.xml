@@ -217,4 +217,23 @@
     <string name="album_already_exists">Ein Album mit diesem Namen existiert bereits</string>
     <string name="loading_ad">Anzeige wird geladen…</string>
     <string name="permission_required_to_rename">Zum Umbenennen dieser Datei ist eine Berechtigung erforderlich</string>
+    <string name="caller_id_alerts">Anrufer-ID und Anrufbenachrichtigungen</string>
+    <string name="caller_id_desc">Erforderlich, um Anrufe zu erkennen und Anrufer bei eingehenden und ausgehenden Anrufen zu identifizieren.</string>
+    <string name="display_over_apps">Über anderen Apps anzeigen</string>
+    <string name="display_over_apps_desc">Erforderlich, um Anrufer-ID-Bildschirme und Schnellaktionen nach Anrufen anzuzeigen.</string>
+    <string name="overlay_permission_title">Über anderen Apps anzeigen</string>
+    <string name="overlay_permission_desc">Bitte aktiviere in den Einstellungen die Option „Über anderen Apps anzeigen“, damit Anrufer-ID-Bildschirme und Bildschirme nach Anrufen angezeigt werden können.</string>
+    <string name="enable">Aktivieren</string>
+    <string name="skip">Überspringen</string>
+    <string name="camera_access">Kamerazugriff</string>
+    <string name="camera_access_desc">Fotos und Videos direkt in der Galerie aufnehmen</string>
+    <string name="camera_permission_dialog_desc">Der Kamerazugriff ist erforderlich, um Fotos und Videos direkt in der App aufzunehmen und in deiner Galerie zu speichern.</string>
+    <string name="caller_id_dialog_desc">Die Anrufer-ID hilft dir, Anrufer bei eingehenden und ausgehenden Anrufen zu identifizieren, Anrufdetails anzuzeigen und nach Anrufen schnell Erinnerungen zu erstellen oder Nachrichten zu senden. Dafür sind die Berechtigungen für Telefonanrufe und die Anzeige über anderen Apps erforderlich.</string>
+    <string name="storage_permission_dialog_desc">Die Galerie benötigt Zugriff auf Fotos und Medien, um deine Alben und Mediendateien anzuzeigen, zu organisieren und zu verwalten.</string>
+    <string name="permission_required">Berechtigung erforderlich</string>
+    <string name="allow_access">Zugriff erlauben</string>
+    <string name="open_settings">Einstellungen öffnen</string>
+    <string name="active">Aktiv</string>
+    <string name="not_enabled">Nicht aktiviert</string>
+
 </resources>

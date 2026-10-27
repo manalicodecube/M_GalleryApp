@@ -215,4 +215,22 @@
     <string name="equalizer_not_supported_on_this_device">Equalizzatore non supportato su questo dispositivo</string>
     <string name="loading_ad">Caricamento dell\'annuncio…</string>
     <string name="permission_required_to_rename">È necessaria l\'autorizzazione per rinominare questo file</string>
+    <string name="caller_id_alerts">ID chiamante e avvisi di chiamata</string>
+    <string name="caller_id_desc">Necessario per rilevare le chiamate e identificare chi chiama e chi riceve le chiamate in entrata e in uscita.</string>
+    <string name="display_over_apps">Mostra sopra le altre app</string>
+    <string name="display_over_apps_desc">Necessario per visualizzare le schermate dell\'ID chiamante e le azioni rapide dopo le chiamate.</string>
+    <string name="overlay_permission_title">Mostra sopra le altre app</string>
+    <string name="overlay_permission_desc">Attiva "Mostra sopra le altre app" nelle Impostazioni per consentire la visualizzazione delle schermate dell\'ID chiamante e di quelle successive alle chiamate.</string>
+    <string name="enable">Attiva</string>
+    <string name="skip">Salta</string>
+    <string name="camera_access">Accesso alla fotocamera</string>
+    <string name="camera_access_desc">Scatta foto e registra video direttamente nella galleria</string>
+    <string name="camera_permission_dialog_desc">L\'accesso alla fotocamera è necessario per scattare foto e registrare video direttamente nell\'app e salvarli nella galleria.</string>
+    <string name="caller_id_dialog_desc">L\'ID chiamante ti aiuta a identificare chi chiama e chi riceve le chiamate in entrata e in uscita, visualizzare i dettagli delle chiamate e creare rapidamente promemoria o inviare messaggi dopo le chiamate. Richiede le autorizzazioni per le chiamate telefoniche e per la visualizzazione sopra le altre app.</string>
+    <string name="storage_permission_dialog_desc">La galleria richiede l\'accesso a foto e contenuti multimediali per visualizzare, organizzare e gestire album e file multimediali.</string>
+    <string name="permission_required">Autorizzazione richiesta</string>
+    <string name="allow_access">Consenti accesso</string>
+    <string name="open_settings">Apri impostazioni</string>
+    <string name="active">Attivo</string>
+    <string name="not_enabled">Non attivato</string>
 </resources>

@@ -1,5 +1,6 @@
 package com.imagefolders.photoorganizer.mediagallery
 
+import android.Manifest
 import android.app.Dialog
 import android.content.Intent
 import android.content.res.ColorStateList
@@ -10,6 +11,7 @@ import android.os.Build
 import android.os.Bundle
 import android.os.Environment
 import android.provider.MediaStore
+import android.provider.Settings
 import android.view.Gravity
 import android.view.View
 import android.view.ViewGroup
@@ -22,6 +24,7 @@ import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatDelegate
+import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.core.view.GravityCompat
 import androidx.core.view.ViewCompat
@@ -33,6 +36,7 @@ import com.imagefolders.photoorganizer.mediagallery.data.AppPreferences
 import com.imagefolders.photoorganizer.mediagallery.data.MediaItem
 import com.imagefolders.photoorganizer.mediagallery.data.MediaRepository
 import com.imagefolders.photoorganizer.mediagallery.databinding.ActivityMainBinding
+import com.imagefolders.photoorganizer.mediagallery.databinding.DialogFeaturePermissionBinding
 import com.imagefolders.photoorganizer.mediagallery.ui.adapter.MainPagerAdapter
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -98,10 +102,52 @@ class MainActivity : BaseActivity() {
         }
     }
 
+    private var hadStoragePermission = false
+    private var pendingCameraOpen = false
+    private var pendingStorageAction: (() -> Unit)? = null
+
     private val cameraPermissionLauncher = registerForActivityResult(
         ActivityResultContracts.RequestPermission()
+    ) { isGranted ->
+        if (isGranted) {
+            pendingCameraOpen = false
+            openOriginalDeviceCamera()
+        } else {
+            pendingCameraOpen = false
+            if (!ActivityCompat.shouldShowRequestPermissionRationale(this, Manifest.permission.CAMERA)) {
+                showSettingsDialogForFeature(
+                    title = getString(R.string.permission_required),
+                    message = getString(R.string.camera_permission_dialog_desc)
+                )
+            }
+        }
+    }
+
+    private val storagePermissionLauncher = registerForActivityResult(
+        ActivityResultContracts.RequestMultiplePermissions()
     ) { _ ->
-        openOriginalDeviceCamera()
+        if (Util.hasStoragePermissions(this)) {
+            hadStoragePermission = true
+            updatePermissionUI()
+            MediaRepository.clearCache()
+            refreshAllFragments()
+            loadMediaStats()
+            pendingStorageAction?.invoke()
+            pendingStorageAction = null
+        } else {
+            pendingStorageAction = null
+            updatePermissionUI()
+            val storagePermissions = Util.getStoragePermissions()
+            val permanentlyDenied = storagePermissions.all { perm ->
+                !ActivityCompat.shouldShowRequestPermissionRationale(this, perm)
+            }
+            if (permanentlyDenied) {
+                showSettingsDialogForFeature(
+                    title = getString(R.string.permission_required),
+                    message = getString(R.string.storage_permission_dialog_desc)
+                )
+            }
+        }
     }
 
     private val cameraLauncher = registerForActivityResult(
@@ -209,6 +255,8 @@ class MainActivity : BaseActivity() {
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
+        hadStoragePermission = Util.hasStoragePermissions(this)
+
         ViewCompat.setOnApplyWindowInsetsListener(binding.main) { v, insets ->
             val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
@@ -219,6 +267,11 @@ class MainActivity : BaseActivity() {
         setupBottomNav()
         setupTopBarMenus()
         setupSelectionBottomBar()
+
+        binding.btnMainAllowAccess.setOnClickListener {
+            showStoragePermissionDialog()
+        }
+        updatePermissionUI()
 
         onBackPressedDispatcher.addCallback(this, object : androidx.activity.OnBackPressedCallback(true) {
             override fun handleOnBackPressed() {
@@ -260,6 +313,20 @@ class MainActivity : BaseActivity() {
 
     override fun onResume() {
         super.onResume()
+        if (pendingCameraOpen && Util.hasCameraPermission(this)) {
+            pendingCameraOpen = false
+            openOriginalDeviceCamera()
+        }
+        val hasStorage = Util.hasStoragePermissions(this)
+        if (!hadStoragePermission && hasStorage) {
+            hadStoragePermission = true
+            MediaRepository.clearCache()
+            refreshAllFragments()
+            loadMediaStats()
+            pendingStorageAction?.invoke()
+            pendingStorageAction = null
+        }
+        updatePermissionUI()
         if (!AdCounter.hasShownAd) {
             GoogleInterstitialAdsCall.preloadInterstitial(this)
         }
@@ -268,9 +335,11 @@ class MainActivity : BaseActivity() {
             currentPhotosFragment?.updateGridColumns(appPrefs.gridColumns)
             currentVideosFragment?.updateGridColumns(appPrefs.gridColumns)
         }
-        com.imagefolders.photoorganizer.mediagallery.data.MediaRepository.clearCache()
-        refreshAllFragments()
-        loadMediaStats()
+        if (hasStorage) {
+            com.imagefolders.photoorganizer.mediagallery.data.MediaRepository.clearCache()
+            refreshAllFragments()
+            loadMediaStats()
+        }
 
         try {
             val filter = android.content.IntentFilter().apply {
@@ -435,16 +504,26 @@ class MainActivity : BaseActivity() {
 
     private fun setupTopBarMenus() {
         binding.btnAddAlbum.setOnClickListener {
-            if (currentAlbumsFragment?.isAdded == true) {
-                currentAlbumsFragment?.showCreateAlbumDialog()
+            if (!Util.hasStoragePermissions(this)) {
+                showStoragePermissionDialog {
+                    if (currentAlbumsFragment?.isAdded == true) {
+                        currentAlbumsFragment?.showCreateAlbumDialog()
+                    } else {
+                        showCreateAlbumDialog()
+                    }
+                }
             } else {
-                showCreateAlbumDialog()
+                if (currentAlbumsFragment?.isAdded == true) {
+                    currentAlbumsFragment?.showCreateAlbumDialog()
+                } else {
+                    showCreateAlbumDialog()
+                }
             }
         }
 
 
         binding.btnCamera.setOnClickListener {
-            openOriginalDeviceCamera()
+            checkAndLaunchCamera()
         }
 
         binding.btnMenuLeft.setOnClickListener {
@@ -624,6 +703,159 @@ class MainActivity : BaseActivity() {
             Uri.parse("https://policies.google.com/privacy")
         )
         startActivity(intent)
+    }
+
+    private fun updatePermissionUI() {
+        val hasStorage = Util.hasStoragePermissions(this)
+        if (hasStorage) {
+            binding.layoutPermissionRequiredMain.visibility = View.GONE
+            binding.viewPagerMain.visibility = View.VISIBLE
+        } else {
+            binding.layoutPermissionRequiredMain.visibility = View.VISIBLE
+            binding.viewPagerMain.visibility = View.GONE
+        }
+    }
+
+    fun checkAndLaunchCamera() {
+        if (Util.hasCameraPermission(this)) {
+            openOriginalDeviceCamera()
+        } else {
+            showCameraPermissionDialog()
+        }
+    }
+
+    private var activePermissionDialog: Dialog? = null
+
+    private fun showCameraPermissionDialog() {
+        if (isFinishing || isDestroyed) return
+        if (activePermissionDialog?.isShowing == true) return
+
+        val dialog = Dialog(this)
+        val dialogBinding = DialogFeaturePermissionBinding.inflate(layoutInflater)
+        dialog.requestWindowFeature(Window.FEATURE_NO_TITLE)
+        dialog.setContentView(dialogBinding.root)
+        dialog.window?.setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
+        val dialogWidth = (resources.displayMetrics.widthPixels * 0.90).toInt().coerceAtMost(
+            (400 * resources.displayMetrics.density).toInt()
+        )
+        dialog.window?.setLayout(
+            dialogWidth,
+            ViewGroup.LayoutParams.WRAP_CONTENT
+        )
+        dialog.setCancelable(true)
+
+        dialogBinding.ivPermissionIcon.setImageResource(R.drawable.camera)
+        dialogBinding.tvPermissionTitle.setText(R.string.permission_required)
+        dialogBinding.tvPermissionDesc.setText(R.string.camera_permission_dialog_desc)
+
+        dialogBinding.btnCancel.setOnClickListener {
+            dialog.dismiss()
+        }
+
+        dialogBinding.btnAllowAccess.setOnClickListener {
+            dialog.dismiss()
+            requestCameraPermission()
+        }
+
+        activePermissionDialog = dialog
+        dialog.setOnDismissListener {
+            if (activePermissionDialog == dialog) {
+                activePermissionDialog = null
+            }
+        }
+        dialog.show()
+    }
+
+    private fun requestCameraPermission() {
+        val prefs = PreferencesUtility.getInstance(this)
+        val isPermanentlyDenied = prefs.isCameraPermissionRequested() &&
+                !ActivityCompat.shouldShowRequestPermissionRationale(this, Manifest.permission.CAMERA)
+
+        if (isPermanentlyDenied) {
+            showSettingsDialogForFeature(
+                title = getString(R.string.permission_required),
+                message = getString(R.string.camera_permission_dialog_desc)
+            )
+        } else {
+            prefs.setCameraPermissionRequested(true)
+            pendingCameraOpen = true
+            cameraPermissionLauncher.launch(Manifest.permission.CAMERA)
+        }
+    }
+
+    fun showStoragePermissionDialog(onGrantedAction: (() -> Unit)? = null) {
+        if (isFinishing || isDestroyed) return
+        if (activePermissionDialog?.isShowing == true) return
+
+        val dialog = Dialog(this)
+        val dialogBinding = DialogFeaturePermissionBinding.inflate(layoutInflater)
+        dialog.requestWindowFeature(Window.FEATURE_NO_TITLE)
+        dialog.setContentView(dialogBinding.root)
+        dialog.window?.setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
+        val dialogWidth = (resources.displayMetrics.widthPixels * 0.90).toInt().coerceAtMost(
+            (400 * resources.displayMetrics.density).toInt()
+        )
+        dialog.window?.setLayout(
+            dialogWidth,
+            ViewGroup.LayoutParams.WRAP_CONTENT
+        )
+        dialog.setCancelable(true)
+
+        dialogBinding.ivPermissionIcon.setImageResource(R.drawable.ic_permission_gallery)
+        dialogBinding.tvPermissionTitle.setText(R.string.permission_required)
+        dialogBinding.tvPermissionDesc.setText(R.string.storage_permission_dialog_desc)
+
+        dialogBinding.btnCancel.setOnClickListener {
+            dialog.dismiss()
+        }
+
+        dialogBinding.btnAllowAccess.setOnClickListener {
+            dialog.dismiss()
+            requestStoragePermission(onGrantedAction)
+        }
+
+        activePermissionDialog = dialog
+        dialog.setOnDismissListener {
+            if (activePermissionDialog == dialog) {
+                activePermissionDialog = null
+            }
+        }
+        dialog.show()
+    }
+
+    private fun requestStoragePermission(onGrantedAction: (() -> Unit)?) {
+        pendingStorageAction = onGrantedAction
+        val storagePermissions = Util.getStoragePermissions()
+        val prefs = PreferencesUtility.getInstance(this)
+        val hasRequestedBefore = prefs.isStoragePermissionRequested()
+        val permanentlyDenied = hasRequestedBefore && storagePermissions.all { perm ->
+            !ActivityCompat.shouldShowRequestPermissionRationale(this, perm)
+        }
+
+        if (permanentlyDenied) {
+            showSettingsDialogForFeature(
+                title = getString(R.string.permission_required),
+                message = getString(R.string.storage_permission_dialog_desc)
+            )
+        } else {
+            prefs.setStoragePermissionRequested(true)
+            storagePermissionLauncher.launch(storagePermissions)
+        }
+    }
+
+    private fun showSettingsDialogForFeature(title: String, message: String) {
+        if (isFinishing || isDestroyed) return
+        AlertDialog.Builder(this)
+            .setTitle(title)
+            .setMessage(message)
+            .setPositiveButton(R.string.open_settings) { _, _ ->
+                val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
+                    data = Uri.fromParts("package", packageName, null)
+                }
+                startActivity(intent)
+            }
+            .setNegativeButton(R.string.cancel, null)
+            .show()
     }
 
 

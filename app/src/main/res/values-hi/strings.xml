@@ -215,5 +215,24 @@
     <string name="loading_ad">विज्ञापन लोड हो रहा है…</string>
     <string name="hidden_album_is_locked">छिपा हुआ एल्बम लॉक है</string>
     <string name="permission_required_to_rename">इस फ़ाइल का नाम बदलने के लिए अनुमति आवश्यक है</string>
+    <string name="caller_id_alerts">कॉलर आईडी और कॉल अलर्ट</string>
+    <string name="caller_id_desc">कॉल का पता लगाने और आने वाली तथा जाने वाली कॉल करने वालों की पहचान करने के लिए आवश्यक है।</string>
+    <string name="display_over_apps">अन्य ऐप्स के ऊपर दिखाएँ</string>
+    <string name="display_over_apps_desc">कॉलर आईडी स्क्रीन और कॉल के बाद की त्वरित कार्रवाइयाँ दिखाने के लिए आवश्यक है।</string>
+    <string name="overlay_permission_title">अन्य ऐप्स के ऊपर दिखाएँ</string>
+    <string name="overlay_permission_desc">कॉलर आईडी और कॉल के बाद की स्क्रीन दिखाने के लिए कृपया सेटिंग्स में 'अन्य ऐप्स के ऊपर दिखाएँ' सक्षम करें।</string>
+    <string name="enable">सक्षम करें</string>
+    <string name="skip">छोड़ें</string>
+    <string name="camera_access">कैमरा एक्सेस</string>
+    <string name="camera_access_desc">गैलरी में सीधे फ़ोटो और वीडियो कैप्चर करें</string>
+    <string name="camera_permission_dialog_desc">ऐप के अंदर सीधे फ़ोटो और वीडियो कैप्चर करने और उन्हें गैलरी में सेव करने के लिए कैमरा एक्सेस आवश्यक है।</string>
+    <string name="caller_id_dialog_desc">कॉलर आईडी आपको आने वाली और जाने वाली कॉल करने वालों की पहचान करने, कॉल का विवरण देखने और कॉल के बाद तुरंत रिमाइंडर बनाने या संदेश भेजने में मदद करती है। इसके लिए फ़ोन कॉल और अन्य ऐप्स के ऊपर दिखाने की अनुमतियाँ आवश्यक हैं।</string>
+    <string name="storage_permission_dialog_desc">गैलरी में आपके एल्बम और मीडिया फ़ाइलें दिखाने, व्यवस्थित करने और प्रबंधित करने के लिए फ़ोटो और मीडिया तक पहुँच आवश्यक है।</string>
+    <string name="permission_required">अनुमति आवश्यक है</string>
+    <string name="allow_access">एक्सेस की अनुमति दें</string>
+    <string name="open_settings">सेटिंग्स खोलें</string>
+    <string name="active">सक्रिय</string>
+    <string name="not_enabled">सक्षम नहीं है</string>
+
 
 </resources>

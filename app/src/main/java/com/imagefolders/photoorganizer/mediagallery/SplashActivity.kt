@@ -54,7 +54,7 @@ class SplashActivity : BaseActivity() {
             intent.putExtra(Constant.IS_FROM_SPLASH, true)
             startActivity(intent)
             finish()
-        } else if (!Util.hasRequiredPermissions(this)) {
+        } else if (!Util.hasAllPermissions(this)) {
             navigateToPermission()
         } else {
             AppOpenAdsCall.loadAndShowAppOpenAd(this, object : AppOpenAdsCall.AppOpenAdCallback {

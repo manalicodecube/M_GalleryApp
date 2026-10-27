@@ -49,6 +49,11 @@ class AlbumsFragment : Fragment() {
         setupRecyclerView()
         setupSwipeRefresh()
         setupSearch()
+        binding.layoutEmptyAlbums.setOnClickListener {
+            if (!com.imagefolders.photoorganizer.mediagallery.Util.hasStoragePermissions(requireContext())) {
+                (activity as? com.imagefolders.photoorganizer.mediagallery.MainActivity)?.showStoragePermissionDialog { refreshData() }
+            }
+        }
         loadAlbums()
     }
 
@@ -224,7 +229,12 @@ class AlbumsFragment : Fragment() {
             R.color.lumina_primary
         )
         binding.swipeRefreshAlbums.setOnRefreshListener {
-            loadAlbums()
+            if (!com.imagefolders.photoorganizer.mediagallery.Util.hasStoragePermissions(requireContext())) {
+                binding.swipeRefreshAlbums.isRefreshing = false
+                (activity as? com.imagefolders.photoorganizer.mediagallery.MainActivity)?.showStoragePermissionDialog { refreshData() }
+            } else {
+                loadAlbums()
+            }
         }
     }
 
