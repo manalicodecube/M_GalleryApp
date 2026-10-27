@@ -220,7 +220,7 @@
     <string name="display_over_apps">Paparkan di Atas Aplikasi Lain</string>
     <string name="display_over_apps_desc">Diperlukan untuk memaparkan skrin ID Pemanggil dan tindakan pantas selepas panggilan.</string>
     <string name="overlay_permission_title">Paparkan di Atas Aplikasi Lain</string>
-    <string name="overlay_permission_desc">Sila aktifkan \'Paparkan di atas aplikasi lain' dalam Tetapan supaya skrin ID Pemanggil dan skrin selepas panggilan boleh dipaparkan.</string>
+    <string name="overlay_permission_desc">Sila aktifkan \'Paparkan di atas aplikasi lain\' dalam Tetapan supaya skrin ID Pemanggil dan skrin selepas panggilan boleh dipaparkan.</string>
     <string name="enable">Aktifkan</string>
     <string name="skip">Langkau</string>
     <string name="camera_access">Akses Kamera</string>

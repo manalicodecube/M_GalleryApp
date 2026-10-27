@@ -220,7 +220,7 @@
     <string name="display_over_apps">अन्य ऐप्स के ऊपर दिखाएँ</string>
     <string name="display_over_apps_desc">कॉलर आईडी स्क्रीन और कॉल के बाद की त्वरित कार्रवाइयाँ दिखाने के लिए आवश्यक है।</string>
     <string name="overlay_permission_title">अन्य ऐप्स के ऊपर दिखाएँ</string>
-    <string name="overlay_permission_desc">कॉलर आईडी और कॉल के बाद की स्क्रीन दिखाने के लिए कृपया सेटिंग्स में 'अन्य ऐप्स के ऊपर दिखाएँ' सक्षम करें।</string>
+    <string name="overlay_permission_desc">कॉलर आईडी और कॉल के बाद की स्क्रीन दिखाने के लिए कृपया सेटिंग्स में \'अन्य ऐप्स के ऊपर दिखाएँ\' सक्षम करें।</string>
     <string name="enable">सक्षम करें</string>
     <string name="skip">छोड़ें</string>
     <string name="camera_access">कैमरा एक्सेस</string>

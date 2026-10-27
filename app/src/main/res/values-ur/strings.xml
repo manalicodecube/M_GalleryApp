@@ -221,7 +221,7 @@
     <string name="display_over_apps">دیگر ایپس کے اوپر دکھائیں</string>
     <string name="display_over_apps_desc">کالر آئی ڈی اسکرینز اور کال کے بعد فوری اقدامات دکھانے کے لیے ضروری ہے۔</string>
     <string name="overlay_permission_title">دیگر ایپس کے اوپر دکھائیں</string>
-    <string name="overlay_permission_desc">کالر آئی ڈی اور کال کے بعد کی اسکرینز دکھانے کے لیے براہ کرم سیٹنگز میں \'دیگر ایپس کے اوپر دکھائیں' کو فعال کریں۔</string>
+    <string name="overlay_permission_desc">کالر آئی ڈی اور کال کے بعد کی اسکرینز دکھانے کے لیے براہ کرم سیٹنگز میں \'دیگر ایپس کے اوپر دکھائیں\' کو فعال کریں۔</string>
     <string name="enable">فعال کریں</string>
     <string name="skip">چھوڑ دیں</string>
     <string name="camera_access">کیمرے تک رسائی</string>

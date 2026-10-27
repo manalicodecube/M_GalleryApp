@@ -216,18 +216,18 @@
     <string name="loading_ad">Chargement de la publicité…</string>
     <string name="permission_required_to_rename">Une autorisation est requise pour renommer ce fichier</string>
 
-    <string name="caller_id_alerts">Identification de l\'appelant et alertes d'appel</string>
+    <string name="caller_id_alerts">Identification de l\'appelant et alertes d\'appel</string>
     <string name="caller_id_desc">Nécessaire pour détecter les appels et identifier les correspondants lors des appels entrants et sortants.</string>
     <string name="display_over_apps">Afficher par-dessus les autres applications</string>
     <string name="display_over_apps_desc">Nécessaire pour afficher les écrans d\'identification de l\'appelant et les actions rapides après un appel.</string>
     <string name="overlay_permission_title">Afficher par-dessus les autres applications</string>
-    <string name="overlay_permission_desc">Veuillez activer « Afficher par-dessus les autres applications » dans les paramètres afin que les écrans d\'identification de l'appelant et ceux affichés après un appel puissent apparaître.</string>
+    <string name="overlay_permission_desc">Veuillez activer « Afficher par-dessus les autres applications » dans les paramètres afin que les écrans d\'identification de l\'appelant et ceux affichés après un appel puissent apparaître.</string>
     <string name="enable">Activer</string>
     <string name="skip">Ignorer</string>
     <string name="camera_access">Accès à l\'appareil photo</string>
     <string name="camera_access_desc">Prenez des photos et des vidéos directement dans la galerie</string>
     <string name="camera_permission_dialog_desc">L\'accès à l\'appareil photo est nécessaire pour prendre des photos et des vidéos directement dans l\'application et les enregistrer dans votre galerie.</string>
-    <string name="caller_id_dialog_desc">L\'identification de l\'appelant vous aide à identifier les correspondants lors des appels entrants et sortants, à consulter les détails des appels et à créer rapidement des rappels ou à envoyer des messages après les appels. Elle nécessite les autorisations relatives aux appels téléphoniques et à l'affichage par-dessus les autres applications.</string>
+    <string name="caller_id_dialog_desc">L\'identification de l\'appelant vous aide à identifier les correspondants lors des appels entrants et sortants, à consulter les détails des appels et à créer rapidement des rappels ou à envoyer des messages après les appels. Elle nécessite les autorisations relatives aux appels téléphoniques et à l\'affichage par-dessus les autres applications.</string>
     <string name="storage_permission_dialog_desc">La galerie nécessite l\'accès aux photos et aux médias pour afficher, organiser et gérer vos albums et fichiers multimédias.</string>
     <string name="permission_required">Autorisation requise</string>
     <string name="allow_access">Autoriser l\'accès</string>
