@@ -15,6 +15,7 @@ class SplashActivity : BaseActivity() {
 
     private lateinit var binding: ActivitySplashBinding
     private var isProceeding = false
+    private var isProceedingToNextScreen = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -26,6 +27,11 @@ class SplashActivity : BaseActivity() {
             val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
             insets
+        }
+
+        val prefs = PreferencesUtility.getInstance(this)
+        if (prefs.isLanguageSelectionShown()) {
+            AppOpenAdsCall.preload(this)
         }
 
         startSplashProgressAnimation()
@@ -54,14 +60,23 @@ class SplashActivity : BaseActivity() {
             intent.putExtra(Constant.IS_FROM_SPLASH, true)
             startActivity(intent)
             finish()
-        } else if (!Util.hasAllPermissions(this)) {
-            navigateToPermission()
         } else {
             AppOpenAdsCall.loadAndShowAppOpenAd(this, object : AppOpenAdsCall.AppOpenAdCallback {
                 override fun onAdDismissed() {
-                    navigateToMain()
+                    proceedToNextScreen()
                 }
             })
+        }
+    }
+
+    private fun proceedToNextScreen() {
+        if (isProceedingToNextScreen || isFinishing || isDestroyed) return
+        isProceedingToNextScreen = true
+
+        if (!Util.hasAllPermissions(this)) {
+            navigateToPermission()
+        } else {
+            navigateToMain()
         }
     }
 

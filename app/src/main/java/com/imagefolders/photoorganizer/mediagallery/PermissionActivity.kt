@@ -97,6 +97,12 @@ class PermissionActivity : BaseActivity() {
         binding.btnNotNow.setOnClickListener {
             navigateToMain()
         }
+
+        onBackPressedDispatcher.addCallback(this, object : androidx.activity.OnBackPressedCallback(true) {
+            override fun handleOnBackPressed() {
+                navigateToMain()
+            }
+        })
     }
 
     private fun requestPermissions() {
