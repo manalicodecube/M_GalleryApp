@@ -42,7 +42,6 @@ android {
 }
 
 dependencies {
-    implementation("androidx.activity:activity-ktx:1.13.0")
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.appcompat)
     implementation(libs.androidx.documentfile)
@@ -61,6 +60,7 @@ dependencies {
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.8.1")
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.8.7")
     implementation("androidx.viewpager2:viewpager2:1.1.0")
+    implementation("androidx.activity:activity-ktx:1.13.0")
     implementation("com.facebook.shimmer:shimmer:0.5.0")
     implementation("androidx.swiperefreshlayout:swiperefreshlayout:1.1.0")
     implementation("com.google.android.gms:play-services-ads:23.6.0")
