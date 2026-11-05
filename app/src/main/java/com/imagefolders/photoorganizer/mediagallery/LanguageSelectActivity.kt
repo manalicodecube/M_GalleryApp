@@ -1,10 +1,13 @@
 package com.imagefolders.photoorganizer.mediagallery
 
 import android.content.Intent
+import android.content.pm.ApplicationInfo
 import android.os.Bundle
 import android.util.SparseArray
 import android.view.View
 import android.widget.FrameLayout
+import android.widget.Toast
+import androidx.activity.OnBackPressedCallback
 import androidx.activity.enableEdgeToEdge
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
@@ -15,6 +18,9 @@ import com.google.android.gms.ads.AdListener
 import com.google.android.gms.ads.AdRequest
 import com.google.android.gms.ads.AdView
 import com.google.android.gms.ads.LoadAdError
+import com.google.android.ump.ConsentDebugSettings
+import com.google.android.ump.ConsentRequestParameters
+import com.google.android.ump.UserMessagingPlatform
 
 class LanguageSelectActivity : BaseActivity() {
 
@@ -40,13 +46,20 @@ class LanguageSelectActivity : BaseActivity() {
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
             insets
         }
+
+        onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
+            override fun handleOnBackPressed() {
+                finish()
+            }
+        })
+
         findViewById<View>(R.id.btnClose)?.setOnClickListener {
             finish()
         }
         btnClose = binding.btnClose
+        btnClose.visibility = View.GONE
         imgDone = binding.imgDone
         rvLanguageList = binding.rvLanguageList
-
 
         initIntentParams()
         init()
@@ -79,7 +92,68 @@ class LanguageSelectActivity : BaseActivity() {
         }
 
         setLanguageList()
-        loadBigBannerAd()
+
+        if (isFromSplash) {
+            requestConsentAndLoadBanner()
+        } else {
+            loadBigBannerAd()
+        }
+    }
+
+    private fun requestConsentAndLoadBanner() {
+        if (!AdsUtils.isConnected(this)) {
+            loadBigBannerAd()
+            return
+        }
+
+        val isDebuggable = (applicationInfo.flags and ApplicationInfo.FLAG_DEBUGGABLE) != 0
+        val paramsBuilder = ConsentRequestParameters.Builder()
+            .setTagForUnderAgeOfConsent(false)
+
+        if (isDebuggable) {
+            val debugSettings = ConsentDebugSettings.Builder(this)
+                .setDebugGeography(ConsentDebugSettings.DebugGeography.DEBUG_GEOGRAPHY_EEA)
+                .build()
+            paramsBuilder.setConsentDebugSettings(debugSettings)
+        }
+
+        val params = paramsBuilder.build()
+        val consentInformation = UserMessagingPlatform.getConsentInformation(this)
+
+        consentInformation.requestConsentInfoUpdate(
+            this,
+            params,
+            {
+                UserMessagingPlatform.loadAndShowConsentFormIfRequired(
+                    this
+                ) { formError ->
+                    if (isFinishing || isDestroyed) return@loadAndShowConsentFormIfRequired
+                    if (formError != null) {
+                        Toast.makeText(
+                            this@LanguageSelectActivity,
+                            "Consent failed: ${formError.message}",
+                            Toast.LENGTH_SHORT
+                        ).show()
+                    } else {
+                        Toast.makeText(
+                            this@LanguageSelectActivity,
+                            "Consent gathered successfully",
+                            Toast.LENGTH_SHORT
+                        ).show()
+                    }
+                    loadBigBannerAd()
+                }
+            },
+            { requestConsentError ->
+                if (isFinishing || isDestroyed) return@requestConsentInfoUpdate
+                Toast.makeText(
+                    this@LanguageSelectActivity,
+                    "Consent failed: ${requestConsentError.message}",
+                    Toast.LENGTH_SHORT
+                ).show()
+                loadBigBannerAd()
+            }
+        )
     }
 
     private fun proceedToNext() {
@@ -117,6 +191,8 @@ class LanguageSelectActivity : BaseActivity() {
     }
 
     private fun loadBigBannerAd() {
+        if (isFinishing || isDestroyed) return
+        if (bannerAdView != null) return
         if (!AdsUtils.isConnected(this)) return
 
         BannerAdsManager.initialize(this)
@@ -200,6 +276,7 @@ class LanguageSelectActivity : BaseActivity() {
         }
     }
 
+    @Deprecated("Deprecated in Java")
     override fun onBackPressed() {
         super.onBackPressed()
         finish()
