@@ -33,6 +33,7 @@ class LanguageSelectActivity : BaseActivity() {
     private lateinit var binding: ActivityLanguageSelectBinding
     private var isProcessingClick = false
     private var googleBannerAds: GoogleBannerAds? = null
+
     private var bannerAdView: AdView? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
